@@ -1,0 +1,33 @@
+{
+  "a2g": "0.1",
+  "epoch": 1,
+  "latency_ms": 233,
+  "decisions": [
+    {
+      "id": "72259471404",
+      "source": "AI",
+      "action": "flee",
+      "label": "Move away from the player",
+      "confidence": 0.64,
+      "ttl_ms": 12000,
+      "decision_id": "d_01J9Z4K7"
+    },
+    {
+      "id": "74356623529",
+      "source": "AI",
+      "action": "chase",
+      "label": "Move toward the player",
+      "confidence": null,
+      "ttl_ms": 12000,
+      "decision_id": "d_01J9Z4K8",
+      "cached": true
+    },
+    {
+      "id": "71005",
+      "source": "FALLBACK",
+      "code": "unavailable",
+      "reason": "Provider timed out",
+      "ttl_ms": 12000
+    }
+  ]
+}

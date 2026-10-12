@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent2game.org/schema/0.1/a2g.schema.json",
+  "title": "Agent2Game (A2G) protocol 0.1",
+  "description": "Structure of the A2G manifest and messages. Semantic rules that depend on the manifest (exact observation fields, legal_actions subset of actions, scope chains, decision_id ownership) are enforced by services and SDKs; see https://agent2game.org/specification/overview/.",
+  "$defs": {
+    "Identifier": {
+      "description": "Client and entity ids.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,80}$"
+    },
+    "Name": {
+      "description": "Names of types, fields, actions, events, scopes and profiles.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.:-]{1,40}$"
+    },
+    "FieldName": {
+      "description": "Names of observation, world and scope fields. No dots, so cache keys like world.x and scope.x stay unambiguous.",
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_-]{1,40}$"
+    },
+    "Vector": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 2,
+      "maxItems": 3
+    },
+    "Scalar": {
+      "oneOf": [
+        { "type": "number" },
+        { "type": "boolean" },
+        { "type": "string", "maxLength": 80 }
+      ]
+    },
+    "Scalars": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/FieldName" },
+      "additionalProperties": { "$ref": "#/$defs/Scalar" },
+      "maxProperties": 24
+    },
+    "Value": {
+      "description": "A field value: scalar, enum value, vector, entity id or a list of objects.",
+      "oneOf": [
+        { "$ref": "#/$defs/Scalar" },
+        { "$ref": "#/$defs/Vector" },
+        {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "propertyNames": { "$ref": "#/$defs/FieldName" },
+            "additionalProperties": { "oneOf": [{ "$ref": "#/$defs/Scalar" }, { "$ref": "#/$defs/Vector" }] },
+            "maxProperties": 24
+          }
+        }
+      ]
+    },
+    "Values": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/FieldName" },
+      "additionalProperties": { "$ref": "#/$defs/Value" },
+      "maxProperties": 24
+    },
+    "ScalarFieldType": {
+      "oneOf": [
+        { "enum": ["number", "boolean", "string", "vector2", "vector3", "entity_ref"] },
+        {
+          "description": "Enum: one of the listed values.",
+          "type": "array",
+          "items": { "oneOf": [{ "type": "string", "minLength": 1, "maxLength": 40 }, { "type": "number" }] },
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true
+        }
+      ]
+    },
+    "FieldType": {
+      "oneOf": [
+        { "$ref": "#/$defs/ScalarFieldType" },
+        {
+          "description": "Bounded list of objects with the given sub-fields.",
+          "type": "object",
+          "properties": {
+            "list": {
+              "type": "object",
+              "propertyNames": { "$ref": "#/$defs/FieldName" },
+              "additionalProperties": { "$ref": "#/$defs/ScalarFieldType" },
+              "minProperties": 1,
+              "maxProperties": 24
+            },
+            "max": { "type": "integer", "minimum": 1, "maximum": 32 }
+          },
+          "required": ["list", "max"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "FieldSchema": {
+      "type": "object",
+      "propertyNames": { "$ref": "#/$defs/FieldName" },
+      "additionalProperties": { "$ref": "#/$defs/FieldType" },
+      "maxProperties": 24
+    },
+    "Scope": {
+      "type": "object",
+      "properties": {
+        "parent": { "$ref": "#/$defs/Name" },
+        "text": { "type": "string", "maxLength": 4000 },
+        "fields": { "$ref": "#/$defs/FieldSchema" }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "Profile": {
+      "type": "object",
+      "properties": {
+        "text": { "type": "string", "maxLength": 1000 },
+        "type": { "$ref": "#/$defs/Name" }
+      },
+      "required": ["text"],
+      "additionalProperties": false
+    },
+    "Cache": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^((world|scope)\\.)?[A-Za-z0-9_-]{1,40}$|^parent\\.action$" },
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "buckets": {
+          "type": "object",
+          "additionalProperties": { "type": "array", "items": { "type": "number" }, "minItems": 1, "maxItems": 16 }
+        },
+        "ttl_ms": { "type": "integer", "minimum": 1000, "maximum": 600000 }
+      },
+      "required": ["key"],
+      "additionalProperties": false
+    },
+    "EntityType": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string", "maxLength": 1000 },
+        "fields": { "$ref": "#/$defs/FieldSchema" },
+        "actions": {
+          "description": "Empty object = observe-only type.",
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "type": "string", "maxLength": 300 },
+          "maxProperties": 32
+        },
+        "events": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "type": "string", "maxLength": 300 },
+          "maxProperties": 16
+        },
+        "decision_ttl_ms": { "type": "integer", "minimum": 1000, "maximum": 120000, "default": 12000 },
+        "refresh_ms": { "type": "integer", "minimum": 1000, "maximum": 600000 },
+        "perception_radius": { "type": "number", "exclusiveMinimum": 0 },
+        "max_input_tokens": { "type": "integer", "minimum": 50, "maximum": 20000 },
+        "cache": { "$ref": "#/$defs/Cache" }
+      },
+      "required": ["actions"],
+      "additionalProperties": false
+    },
+    "Manifest": {
+      "type": "object",
+      "properties": {
+        "world": { "type": "string", "maxLength": 4000 },
+        "world_fields": { "$ref": "#/$defs/FieldSchema" },
+        "scopes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "$ref": "#/$defs/Scope" },
+          "maxProperties": 64
+        },
+        "profiles": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "$ref": "#/$defs/Profile" },
+          "maxProperties": 256
+        },
+        "entity_types": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "$ref": "#/$defs/EntityType" },
+          "minProperties": 1,
+          "maxProperties": 32
+        }
+      },
+      "required": ["entity_types"],
+      "additionalProperties": false
+    },
+    "SessionRequest": {
+      "type": "object",
+      "properties": {
+        "a2g": { "const": "0.1" },
+        "client_id": { "$ref": "#/$defs/Identifier" },
+        "game": { "type": "string", "maxLength": 80 },
+        "engine": { "type": "string", "maxLength": 80 },
+        "manifest": { "$ref": "#/$defs/Manifest" }
+      },
+      "required": ["a2g", "client_id", "manifest"],
+      "additionalProperties": false
+    },
+    "SessionResponse": {
+      "type": "object",
+      "properties": {
+        "a2g": { "const": "0.1" },
+        "ok": { "const": true },
+        "manifest_hash": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" },
+        "session_token": { "type": "string", "minLength": 22, "maxLength": 512 },
+        "expires_in": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["a2g", "ok", "manifest_hash"],
+      "additionalProperties": false
+    },
+    "ContextRequest": {
+      "type": "object",
+      "properties": {
+        "client_id": { "$ref": "#/$defs/Identifier" },
+        "scopes": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "oneOf": [{ "$ref": "#/$defs/Scope" }, { "type": "null" }] },
+          "maxProperties": 64
+        },
+        "profiles": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "oneOf": [{ "$ref": "#/$defs/Profile" }, { "type": "null" }] },
+          "maxProperties": 256
+        }
+      },
+      "required": ["client_id"],
+      "minProperties": 2,
+      "$comment": "client_id plus at least one of scopes and profiles.",
+      "additionalProperties": false
+    },
+    "ContextResponse": {
+      "type": "object",
+      "properties": {
+        "ok": { "const": true },
+        "scopes": { "type": "integer", "minimum": 0 },
+        "profiles": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["ok"],
+      "additionalProperties": false
+    },
+    "DecideEntity": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Identifier" },
+        "type": { "$ref": "#/$defs/Name" },
+        "observation": { "$ref": "#/$defs/Values" },
+        "legal_actions": { "type": "array", "items": { "$ref": "#/$defs/Name" }, "minItems": 1, "maxItems": 32, "uniqueItems": true },
+        "position": { "$ref": "#/$defs/Vector" },
+        "profile": { "$ref": "#/$defs/Name" },
+        "parent": { "$ref": "#/$defs/Identifier" },
+        "trigger": { "$ref": "#/$defs/Name" }
+      },
+      "required": ["id", "type", "observation", "legal_actions"],
+      "additionalProperties": false
+    },
+    "DecideRequest": {
+      "type": "object",
+      "properties": {
+        "client_id": { "$ref": "#/$defs/Identifier" },
+        "epoch": { "type": "integer", "minimum": 0 },
+        "world": { "$ref": "#/$defs/Values" },
+        "scope": { "$ref": "#/$defs/Name" },
+        "scope_state": { "$ref": "#/$defs/Values" },
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/DecideEntity" }, "minItems": 1, "maxItems": 16 }
+      },
+      "required": ["client_id", "epoch", "world", "entities"],
+      "dependentRequired": { "scope_state": ["scope"] },
+      "additionalProperties": false
+    },
+    "AIDecision": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Identifier" },
+        "source": { "const": "AI" },
+        "action": { "$ref": "#/$defs/Name" },
+        "label": { "type": "string", "maxLength": 300 },
+        "confidence": { "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }] },
+        "ttl_ms": { "type": "integer", "minimum": 1000 },
+        "decision_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "cached": { "type": "boolean" }
+      },
+      "required": ["id", "source", "action", "ttl_ms", "decision_id"],
+      "additionalProperties": false
+    },
+    "FallbackDecision": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Identifier" },
+        "source": { "const": "FALLBACK" },
+        "code": { "enum": ["unavailable", "busy", "refused", "invalid_choice", "budget"] },
+        "reason": { "type": "string", "maxLength": 200 },
+        "ttl_ms": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["id", "source", "code"],
+      "additionalProperties": false
+    },
+    "DecideResponse": {
+      "type": "object",
+      "properties": {
+        "a2g": { "const": "0.1" },
+        "epoch": { "type": "integer", "minimum": 0 },
+        "latency_ms": { "type": "number", "minimum": 0 },
+        "decisions": {
+          "type": "array",
+          "items": { "oneOf": [{ "$ref": "#/$defs/AIDecision" }, { "$ref": "#/$defs/FallbackDecision" }] },
+          "maxItems": 16
+        }
+      },
+      "required": ["a2g", "epoch", "decisions"],
+      "additionalProperties": false
+    },
+    "ReportRequest": {
+      "type": "object",
+      "properties": {
+        "client_id": { "$ref": "#/$defs/Identifier" },
+        "entity_id": { "$ref": "#/$defs/Identifier" },
+        "decision_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "action": { "$ref": "#/$defs/Name" },
+        "status": { "enum": ["executed", "blocked", "expired"] },
+        "outcome": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "$ref": "#/$defs/Scalar" },
+          "maxProperties": 12
+        }
+      },
+      "required": ["client_id", "entity_id", "decision_id", "action", "status"],
+      "additionalProperties": false
+    },
+    "TelemetryEntity": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Identifier" },
+        "type": { "$ref": "#/$defs/Name" },
+        "name": { "type": "string", "maxLength": 80 },
+        "state": { "type": "string", "maxLength": 40 },
+        "pending": { "type": "boolean" },
+        "fields": { "$ref": "#/$defs/Scalars" },
+        "decision": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/Name" },
+          "additionalProperties": { "$ref": "#/$defs/Scalar" },
+          "maxProperties": 12
+        },
+        "position": { "$ref": "#/$defs/Vector" },
+        "parent": { "$ref": "#/$defs/Identifier" },
+        "profile": { "$ref": "#/$defs/Name" }
+      },
+      "required": ["id", "type"],
+      "additionalProperties": false
+    },
+    "TelemetryRequest": {
+      "type": "object",
+      "properties": {
+        "client_id": { "$ref": "#/$defs/Identifier" },
+        "mode": { "enum": ["native", "ai"] },
+        "paused": { "type": "boolean" },
+        "scene": { "type": "string", "maxLength": 80 },
+        "scope": { "$ref": "#/$defs/Name" },
+        "last_error": { "type": "string", "maxLength": 160 },
+        "world": { "$ref": "#/$defs/Scalars" },
+        "entities": { "type": "array", "items": { "$ref": "#/$defs/TelemetryEntity" }, "maxItems": 128 }
+      },
+      "required": ["client_id", "mode", "paused", "entities"],
+      "additionalProperties": false
+    },
+    "OkResponse": {
+      "type": "object",
+      "properties": { "ok": { "const": true } },
+      "required": ["ok"],
+      "additionalProperties": false
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "error": { "type": "string", "maxLength": 200 },
+        "code": { "type": "string", "maxLength": 40 }
+      },
+      "required": ["error"],
+      "additionalProperties": false
+    }
+  }
+}

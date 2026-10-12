@@ -1,0 +1,63 @@
+---
+title: Overview
+description: Transport, versioning, endpoints and message flow of A2G protocol 0.1.
+sidebar:
+  order: 1
+---
+
+import MessageFlow from '../../../components/MessageFlow.astro';
+
+:::caution[Version 0.1 — draft]
+Breaking changes are expected.
+:::
+
+The protocol has two halves: a **data format** — the [manifest](/specification/manifest/), which a game uses to describe itself — and **messages** the game sends to a decision service: four in the main loop and one to update context.
+
+:::note[Specification and implementations]
+This specification leads the reference implementations. Features added to 0.1 for complex games and security — scopes, profiles, groups, events, richer field types, token budgets, the decision cache, fallback codes, authentication and `decision_id` — are specified here but not yet supported by the reference service and Godot SDK. See [implementation status](/implementations/service/#implementation-status).
+:::
+
+A third part is proposed: the [policy format](/specification/policy-format/), a portable file that lets a game make decisions locally with a small model trained on the service's decisions.
+
+## Message flow
+
+<MessageFlow />
+
+1. **Session.** At start the game announces the protocol version and its manifest. When a level or character appears later, [`/v1/context`](/specification/context/) adds its scope or profile.
+2. **Decide.** On events or on a slow timer the game sends a batch of entities that need a decision. The service asks the model one typed question per entity and returns one decision each.
+3. **Execute.** The game validates each decision and executes it, or runs its native AI.
+4. **Report.** When a decision ends, the game reports how; this becomes the entity's memory.
+5. **Telemetry.** About once per second, in every mode, the game sends what is actually happening.
+
+## Endpoints
+
+| Endpoint | Purpose |
+| --- | --- |
+| [`POST /v1/session`](/specification/session/) | Announce the game, protocol version and manifest |
+| [`POST /v1/context`](/specification/context/) | Add, replace or remove scopes and profiles during a session |
+| [`POST /v1/decide`](/specification/decide/) | Ask for actions for a batch of entities |
+| [`POST /v1/report`](/specification/report/) | Report what happened to a decision |
+| [`POST /v1/telemetry`](/specification/telemetry/) | Periodic snapshot for observability |
+| `GET /health` | Unauthenticated liveness and `a2g` version. Only the `local` profile may also show the model and whether a key is configured |
+
+`/health` does **not** prove that a provider call will succeed.
+
+## Transport
+
+- JSON over HTTP, `POST` with `Content-Type: application/json`. Body size is limited to 256 KiB.
+- HTTPS is required outside loopback. `/v1/session` is authenticated with an API key or a join token; every later request carries the returned session token. See [Security](/specification/security/).
+- The reference service listens on `127.0.0.1:8787` only (the `local` profile). Even there, a service must check `Host`, `Origin` and `Content-Type` so web pages in the developer's browser cannot reach it ([local-profile checks](/specification/security/#local-profile-request-checks)).
+- Errors: `400` invalid input, `401` bad or expired credential, `403` not allowed (for example an unregistered manifest), `409` unknown session — resend `/v1/session`, `429` rate limit with `Retry-After`. The game must treat any non-`200` reply as "no decision" and run its native AI.
+
+## Schema
+
+The manifest and every message have a machine-readable JSON Schema (draft 2020-12): [`/schema/0.1/a2g.schema.json`](https://agent2game.org/schema/0.1/a2g.schema.json), one `$defs` entry per message, with valid and invalid examples in the [repository](https://github.com/agent2game/a2g-protocol/tree/main/schema). The schema checks structure; rules that depend on a specific manifest are enforced by services and SDKs as this specification describes.
+
+## Versioning
+
+The game sends `"a2g": "0.1"` in `/v1/session`. A service that does not support that version rejects the session with `400`. Responses to `/v1/session` and `/v1/decide` carry the service's `a2g` version.
+
+## Identifiers
+
+- `client_id` — one running game process. A restarted game is a new client and must send a new session.
+- [entity](/glossary/#entity) `id` — unique within a client; the game chooses it.

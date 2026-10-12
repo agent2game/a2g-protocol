@@ -1,0 +1,143 @@
+{
+  "client_id": "c1",
+  "epoch": 0,
+  "world": {},
+  "entities": [
+    {
+      "id": "e0",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e1",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e2",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e3",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e4",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e5",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e6",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e7",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e8",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e9",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e10",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e11",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e12",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e13",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e14",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e15",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    },
+    {
+      "id": "e16",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    }
+  ]
+}

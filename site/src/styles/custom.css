@@ -1,0 +1,96 @@
+/* Neutral, MCP-like look: monochrome surfaces, one muted accent. */
+
+:root {
+	--sl-font: 'Inter Variable', system-ui, sans-serif;
+	--sl-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+	--sl-content-width: 48rem;
+}
+
+/* Starlight styles live in a cascade layer, so unlayered overrides must be scoped per theme. */
+:root:not([data-theme='light']) {
+	--sl-color-accent-low: #1d2b26;
+	--sl-color-accent: #3f9b7a;
+	--sl-color-accent-high: #bfe6d6;
+	--sl-color-black: #0b0b0c;
+	--sl-color-gray-6: #18181a;
+	--sl-color-gray-5: #26262a;
+}
+
+:root[data-theme='light'] {
+	--sl-color-accent-low: #d9f0e6;
+	--sl-color-accent: #217a5a;
+	--sl-color-accent-high: #0f3d2c;
+}
+
+.sl-markdown-content h2 {
+	letter-spacing: -0.01em;
+}
+
+.hero h1 {
+	letter-spacing: -0.03em;
+}
+
+/* Glossary term links: dotted underline marks "hover for definition". */
+.sl-markdown-content a[href*='/glossary/#'] {
+	color: inherit;
+	text-decoration: underline dotted var(--sl-color-accent);
+	text-underline-offset: 0.2em;
+}
+
+/* Hover preview card, filled by public/link-preview.js. */
+.a2g-preview {
+	position: absolute;
+	z-index: 1000;
+	max-width: 22rem;
+	padding: 0.75rem 0.9rem;
+	border: 1px solid var(--sl-color-gray-5);
+	border-radius: 0.6rem;
+	background: var(--sl-color-bg-nav);
+	box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+	font-size: var(--sl-text-sm);
+	line-height: 1.5;
+	pointer-events: none;
+	animation: a2g-preview-in 120ms ease-out;
+}
+.a2g-preview strong {
+	display: block;
+	margin-bottom: 0.25rem;
+	color: var(--sl-color-white);
+}
+.a2g-preview p {
+	margin: 0;
+	color: var(--sl-color-gray-2);
+}
+@keyframes a2g-preview-in {
+	from { opacity: 0; transform: translateY(4px); }
+}
+@media (prefers-reduced-motion: reduce) {
+	.a2g-preview { animation: none; }
+}
+
+/* "On this page" as a collapsible dropdown on every width instead of a right column.
+   ponytail: overrides Starlight internals (.right-sidebar*, .lg:sl-hidden); recheck after Starlight upgrades. */
+@media (min-width: 72rem) {
+	html[data-has-toc] {
+		--sl-mobile-toc-height: 3rem;
+	}
+	.right-sidebar-container {
+		width: 0;
+	}
+	.right-sidebar {
+		position: static;
+		height: auto;
+		padding: 0;
+		border: 0;
+	}
+	.right-sidebar-panel {
+		display: none;
+	}
+	.right-sidebar-container .lg\:sl-hidden {
+		display: block;
+	}
+	[data-has-sidebar][data-has-toc] .main-pane {
+		--sl-content-margin-inline: auto;
+		width: 100%;
+	}
+}

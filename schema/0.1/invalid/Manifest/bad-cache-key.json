@@ -1,0 +1,14 @@
+{
+  "entity_types": {
+    "g": {
+      "actions": {
+        "a": "b"
+      },
+      "cache": {
+        "key": [
+          "memory.last"
+        ]
+      }
+    }
+  }
+}

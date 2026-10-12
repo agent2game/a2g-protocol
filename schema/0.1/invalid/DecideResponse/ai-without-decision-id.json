@@ -1,0 +1,12 @@
+{
+  "a2g": "0.1",
+  "epoch": 0,
+  "decisions": [
+    {
+      "id": "e1",
+      "source": "AI",
+      "action": "a",
+      "ttl_ms": 12000
+    }
+  ]
+}

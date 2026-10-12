@@ -1,0 +1,9 @@
+{
+  "entity_types": {
+    "guard": {
+      "actions": {
+        "wait": "Hold position"
+      }
+    }
+  }
+}

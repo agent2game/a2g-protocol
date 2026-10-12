@@ -1,0 +1,110 @@
+{
+  "world": "Lango is a top-down 2D action RPG. Health is given as fractions (0..1). Distances are in pixels.",
+  "world_fields": {
+    "player_hp_fraction": "number",
+    "repellent": "boolean"
+  },
+  "scopes": {
+    "outdoors": {
+      "text": "Open outdoor levels with room to retreat and regroup."
+    },
+    "dungeon": {
+      "text": "Dungeon rooms connected by corridors."
+    },
+    "boss_arena": {
+      "parent": "dungeon",
+      "text": "The boss room.",
+      "fields": {
+        "boss_hp_fraction": "number",
+        "boss_phase": [
+          1,
+          2,
+          3
+        ]
+      }
+    }
+  },
+  "profiles": {
+    "queen_bee": {
+      "type": "boss",
+      "text": "Old and cunning. Retreats to heal rather than die."
+    }
+  },
+  "entity_types": {
+    "bee": {
+      "description": "Small, fragile swarm insect (3 HP).",
+      "fields": {
+        "hp_fraction": "number",
+        "distance_to_player": "number",
+        "sees_player": "boolean",
+        "current_action": [
+          "idle",
+          "wander",
+          "chase",
+          "flee"
+        ],
+        "position": "vector2",
+        "target": "entity_ref",
+        "nearby_allies": {
+          "list": {
+            "id": "entity_ref",
+            "hp_fraction": "number"
+          },
+          "max": 8
+        }
+      },
+      "actions": {
+        "chase": "Move toward the player",
+        "flee": "Move away from the player",
+        "idle": "Hold position",
+        "wander": "Patrol"
+      },
+      "events": {
+        "player_spotted": "The player just came into view",
+        "hit": "This bee was just hit"
+      },
+      "decision_ttl_ms": 12000,
+      "refresh_ms": 8000,
+      "perception_radius": 120,
+      "max_input_tokens": 700,
+      "cache": {
+        "key": [
+          "hp_fraction",
+          "sees_player",
+          "world.player_hp_fraction",
+          "scope.boss_phase",
+          "parent.action"
+        ],
+        "buckets": {
+          "hp_fraction": [
+            0.34,
+            0.67
+          ],
+          "world.player_hp_fraction": [
+            0.25,
+            0.5
+          ]
+        },
+        "ttl_ms": 8000
+      }
+    },
+    "boss": {
+      "description": "Large guardian.",
+      "fields": {
+        "hp_fraction": "number"
+      },
+      "actions": {
+        "chase": "Attack",
+        "flee": "Recover"
+      }
+    },
+    "player": {
+      "description": "The human-controlled hero.",
+      "fields": {
+        "hp_fraction": "number"
+      },
+      "actions": {},
+      "perception_radius": 80
+    }
+  }
+}

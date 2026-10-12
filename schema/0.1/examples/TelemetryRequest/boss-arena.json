@@ -1,0 +1,34 @@
+{
+  "client_id": "48213-90412377",
+  "mode": "ai",
+  "paused": false,
+  "scene": "Boss",
+  "scope": "boss_arena",
+  "last_error": "",
+  "world": {
+    "player_hp_fraction": 0.8,
+    "repellent": false
+  },
+  "entities": [
+    {
+      "id": "72259471404",
+      "type": "bee",
+      "name": "Bee",
+      "state": "FLEE",
+      "pending": false,
+      "fields": {
+        "hp_fraction": 0.667
+      },
+      "decision": {
+        "source": "AI",
+        "action": "flee",
+        "confidence": 0.64
+      },
+      "position": [
+        412.5,
+        188.0
+      ],
+      "parent": "71005"
+    }
+  ]
+}

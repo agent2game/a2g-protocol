@@ -1,0 +1,18 @@
+{
+  "client_id": "48213-90412377",
+  "scopes": {
+    "caves": {
+      "text": "Dark caves.",
+      "fields": {
+        "torch_lit": "boolean"
+      }
+    },
+    "boss_arena": null
+  },
+  "profiles": {
+    "old_bat": {
+      "type": "bat",
+      "text": "Half-blind veteran."
+    }
+  }
+}

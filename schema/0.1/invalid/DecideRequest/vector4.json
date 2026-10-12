@@ -1,0 +1,21 @@
+{
+  "client_id": "c1",
+  "epoch": 0,
+  "world": {},
+  "entities": [
+    {
+      "id": "e1",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ],
+      "position": [
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

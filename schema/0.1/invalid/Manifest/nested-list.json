@@ -1,0 +1,22 @@
+{
+  "entity_types": {
+    "g": {
+      "fields": {
+        "x": {
+          "list": {
+            "y": {
+              "list": {
+                "z": "number"
+              },
+              "max": 2
+            }
+          },
+          "max": 2
+        }
+      },
+      "actions": {
+        "a": "b"
+      }
+    }
+  }
+}

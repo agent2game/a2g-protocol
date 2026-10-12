@@ -1,0 +1,12 @@
+{
+  "entity_types": {
+    "g": {
+      "fields": {
+        "x": "vector4"
+      },
+      "actions": {
+        "a": "b"
+      }
+    }
+  }
+}

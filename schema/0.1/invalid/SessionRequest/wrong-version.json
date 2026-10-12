@@ -1,0 +1,11 @@
+{
+  "a2g": "0.2",
+  "client_id": "c1",
+  "manifest": {
+    "entity_types": {
+      "g": {
+        "actions": {}
+      }
+    }
+  }
+}

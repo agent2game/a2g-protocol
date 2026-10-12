@@ -1,0 +1,60 @@
+{
+  "client_id": "48213-90412377",
+  "epoch": 1,
+  "world": {
+    "player_hp_fraction": 0.8,
+    "repellent": false
+  },
+  "scope": "boss_arena",
+  "scope_state": {
+    "boss_hp_fraction": 0.62,
+    "boss_phase": 2
+  },
+  "entities": [
+    {
+      "id": "72259471404",
+      "type": "bee",
+      "parent": "71005",
+      "trigger": "hit",
+      "position": [
+        412.5,
+        188.0
+      ],
+      "observation": {
+        "hp_fraction": 0.667,
+        "distance_to_player": 38.2,
+        "sees_player": true,
+        "current_action": "chase",
+        "position": [
+          412.5,
+          188.0
+        ],
+        "target": "player-1",
+        "nearby_allies": [
+          {
+            "id": "74356623529",
+            "hp_fraction": 1.0
+          }
+        ]
+      },
+      "legal_actions": [
+        "idle",
+        "wander",
+        "chase",
+        "flee"
+      ]
+    },
+    {
+      "id": "71005",
+      "type": "boss",
+      "profile": "queen_bee",
+      "observation": {
+        "hp_fraction": 0.62
+      },
+      "legal_actions": [
+        "chase",
+        "flee"
+      ]
+    }
+  ]
+}

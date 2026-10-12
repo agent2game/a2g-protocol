@@ -1,0 +1,170 @@
+---
+// Layered architecture diagram: game (your code + adapter + SDK) ⇄ decision service ⇄ model provider.
+---
+
+<figure class="arch not-content" aria-label="A2G architecture: game, decision service and model provider">
+	<div class="col">
+		<div class="col-title">Game</div>
+		<div class="box game">
+			<div class="box-title">Your game</div>
+			<div class="box-text">Entities, rules, physics, <strong>native AI (FSM)</strong></div>
+		</div>
+		<div class="box you">
+			<div class="tag">you write</div>
+			<div class="box-title">Adapter + manifest</div>
+			<div class="box-text"><code>observe</code> · <code>legal_actions</code> · <code>execute</code></div>
+		</div>
+		<div class="box a2g">
+			<div class="tag">A2G provides</div>
+			<div class="box-title">Engine SDK</div>
+			<div class="box-text">Session, batching, epochs, TTL, reports, telemetry</div>
+		</div>
+		<div class="box a2g planned">
+			<div class="tag">proposed</div>
+			<div class="box-title">Local policy</div>
+			<div class="box-text">Small model trained on the service's decisions; runs offline</div>
+		</div>
+	</div>
+
+	<div class="link">
+		<span class="arrow">⇄</span>
+		<span class="link-label">A2G protocol<br /><small>HTTP · JSON</small></span>
+	</div>
+
+	<div class="col">
+		<div class="col-title">Decision service</div>
+		<div class="box a2g tall">
+			<div class="tag">A2G provides</div>
+			<div class="box-title">Reference service</div>
+			<ul>
+				<li>Validates against the manifest</li>
+				<li>Keeps per-entity memory</li>
+				<li>Holds provider keys</li>
+				<li>Debug console</li>
+			</ul>
+		</div>
+	</div>
+
+	<div class="link">
+		<span class="arrow">⇄</span>
+		<span class="link-label">typed choice<br /><small>provider API</small></span>
+	</div>
+
+	<div class="col">
+		<div class="col-title">Model</div>
+		<div class="box ext tall">
+			<div class="box-title">Model provider</div>
+			<div class="box-text">Picks one action from the offered list.<br /><small>Reference: OpenAI Decisions</small></div>
+		</div>
+	</div>
+</figure>
+
+<style>
+	.arch {
+		display: grid;
+		grid-template-columns: minmax(0, 1.3fr) auto minmax(0, 1fr) auto minmax(0, 0.9fr);
+		align-items: stretch;
+		gap: 0.5rem;
+		margin: 2rem 0;
+		font-size: var(--sl-text-sm);
+		line-height: 1.45;
+	}
+	.col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+	.col-title {
+		font-size: var(--sl-text-xs);
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	.box {
+		position: relative;
+		padding: 0.75rem 0.85rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.6rem;
+		background: var(--sl-color-gray-7, var(--sl-color-bg));
+	}
+	.tall {
+		flex: 1;
+	}
+	.box-title {
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+	.box-text,
+	.box ul {
+		color: var(--sl-color-gray-2);
+	}
+	.box ul {
+		margin: 0.35rem 0 0;
+		padding-left: 1.1rem;
+	}
+	.box code {
+		font-size: 0.85em;
+	}
+	.tag {
+		float: right;
+		margin-left: 0.5rem;
+		padding: 0 0.45rem;
+		border-radius: 1rem;
+		font-size: 0.7rem;
+		font-weight: 600;
+	}
+	.you {
+		border-color: var(--sl-color-accent);
+		background: var(--sl-color-accent-low);
+	}
+	.you .tag {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+	}
+	.a2g .tag {
+		background: var(--sl-color-gray-5);
+		color: var(--sl-color-white);
+	}
+	.ext,
+	.planned {
+		border-style: dashed;
+	}
+	.link {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding-top: 1.5rem;
+		text-align: center;
+		color: var(--sl-color-gray-3);
+	}
+	.arrow {
+		font-size: 1.6rem;
+		line-height: 1;
+		color: var(--sl-color-accent);
+	}
+	.link-label {
+		font-size: var(--sl-text-xs);
+		white-space: nowrap;
+	}
+	@media (max-width: 50rem) {
+		.arch {
+			grid-template-columns: minmax(0, 1fr);
+		}
+		.link {
+			flex-direction: row;
+			gap: 0.5rem;
+			padding: 0;
+		}
+		.arrow {
+			transform: rotate(90deg);
+		}
+		.link-label br {
+			display: none;
+		}
+		.link-label small::before {
+			content: ' · ';
+		}
+	}
+</style>

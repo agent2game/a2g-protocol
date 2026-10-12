@@ -1,0 +1,17 @@
+{
+  "client_id": "c1",
+  "mode": "ai",
+  "paused": false,
+  "entities": [
+    {
+      "id": "e1",
+      "type": "g",
+      "fields": {
+        "pos": [
+          1,
+          2
+        ]
+      }
+    }
+  ]
+}

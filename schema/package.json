@@ -1,0 +1,7 @@
+{
+  "name": "a2g-schema-check",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node check.mjs" },
+  "devDependencies": { "ajv": "^8.17.1" }
+}

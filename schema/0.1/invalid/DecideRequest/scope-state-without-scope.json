@@ -1,0 +1,18 @@
+{
+  "client_id": "c1",
+  "epoch": 0,
+  "world": {},
+  "scope_state": {
+    "a": 1
+  },
+  "entities": [
+    {
+      "id": "e1",
+      "type": "g",
+      "observation": {},
+      "legal_actions": [
+        "a"
+      ]
+    }
+  ]
+}

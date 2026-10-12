@@ -1,0 +1,11 @@
+{
+  "a2g": "0.1",
+  "epoch": 0,
+  "decisions": [
+    {
+      "id": "e1",
+      "source": "FALLBACK",
+      "code": "oops"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+---
+// "Hand this to your coding agent" block for the home page: a ready prompt that points at /llms-full.txt.
+const full = new URL('/llms-full.txt', Astro.site).href;
+
+const prompt = `Read ${full} — the complete Agent2Game (A2G) protocol documentation. Then help me integrate A2G into my game: inspect my project, propose a manifest (world, entity types, observation fields, actions), write the adapter (observe, legal_actions, execute) and hook my entities so the game's original AI stays the fallback. Ask before changing existing game logic.`;
+---
+
+<section class="agent not-content" aria-labelledby="agent-title">
+	<div class="head">
+		<h2 id="agent-title">Don't want to read? Hand it to your agent.</h2>
+		<p>Paste this into Claude Code, Codex, Cursor or any coding agent.</p>
+	</div>
+	<div class="prompt">
+		<code>{prompt}</code>
+		<button type="button" data-copy={prompt} aria-label="Copy prompt">Copy</button>
+	</div>
+	<p class="links">
+		For agents and tools: <a href="/llms.txt">llms.txt</a> (index) · <a href="/llms-full.txt">llms-full.txt</a> (all docs, one file)
+	</p>
+</section>
+
+<script>
+	for (const button of document.querySelectorAll<HTMLButtonElement>('.agent [data-copy]')) {
+		button.addEventListener('click', async () => {
+			try {
+				await navigator.clipboard.writeText(button.dataset.copy ?? '');
+				button.textContent = 'Copied';
+			} catch {
+				// Clipboard blocked (permissions, insecure context): select the prompt so ⌘C / Ctrl+C works.
+				const code = button.previousElementSibling;
+				if (code) getSelection()?.selectAllChildren(code);
+				button.textContent = 'Press ⌘C';
+			}
+			setTimeout(() => (button.textContent = 'Copy'), 2000);
+		});
+	}
+</script>
+
+<style>
+	.agent {
+		margin: 0 0 2.5rem;
+		padding: 1.1rem 1.25rem;
+		border: 1px solid var(--sl-color-accent);
+		border-radius: 0.75rem;
+		background: var(--sl-color-accent-low);
+	}
+	h2 {
+		margin: 0;
+		font-size: var(--sl-text-lg);
+		color: var(--sl-color-white);
+	}
+	.head p,
+	.links {
+		margin: 0.2rem 0 0;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-2);
+	}
+	.prompt {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-start;
+		margin-top: 0.75rem;
+		padding: 0.75rem 0.85rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+		background: var(--sl-color-black);
+	}
+	code {
+		flex: 1;
+		font-size: var(--sl-text-xs);
+		line-height: 1.55;
+		white-space: normal;
+		color: var(--sl-color-white);
+		background: none;
+		padding: 0;
+	}
+	button {
+		flex-shrink: 0;
+		padding: 0.35rem 0.8rem;
+		border: 0;
+		border-radius: 0.4rem;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-black);
+		font: inherit;
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.links {
+		margin-top: 0.6rem;
+	}
+	.links a {
+		color: var(--sl-color-accent-high);
+	}
+</style>

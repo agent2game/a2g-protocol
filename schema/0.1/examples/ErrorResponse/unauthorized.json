@@ -1,0 +1,4 @@
+{
+  "error": "Invalid or expired session token",
+  "code": "unauthorized"
+}

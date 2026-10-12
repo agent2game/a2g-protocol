@@ -1,0 +1,13 @@
+{
+  "client_id": "48213-90412377",
+  "entity_id": "72259471404",
+  "decision_id": "d_01J9Z4K7",
+  "action": "flee",
+  "status": "executed",
+  "outcome": {
+    "distance_to_player_delta": 96.4,
+    "hp_fraction_delta": 0,
+    "world_player_hp_fraction_delta": 0,
+    "seconds": 4.1
+  }
+}

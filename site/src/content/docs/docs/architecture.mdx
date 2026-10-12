@@ -1,0 +1,46 @@
+---
+title: Architecture
+description: The participants in A2G and how responsibilities are split between them.
+---
+
+import Architecture from '../../../components/Architecture.astro';
+
+<Architecture />
+
+## Inside the game
+
+The game side has three layers. Only the middle one is game-specific code you write.
+
+**Your game** stays as it is: entities, rules, physics and the [native AI](/glossary/#native-ai). Each entity gets one call in its update loop:
+
+```gdscript
+if A2G.execute(self, delta):  # true: A2G controls this entity this frame
+	return
+# otherwise run the original state machine
+```
+
+**[Adapter](/glossary/#adapter) and manifest** — written by the game developer. The manifest declares the world, entity types, observation fields and actions. The adapter implements three functions per entity type:
+
+| Function | Returns |
+| --- | --- |
+| `observe(entity)` | The observation fields declared in the manifest |
+| `legal_actions(entity)` | Actions the game allows right now (rules, cooldowns, visibility) |
+| `execute(entity, action)` | Performs the action through existing game code; may refuse |
+
+**[Engine SDK](/glossary/#sdk)** — provided by A2G, one per engine. It loads the manifest, opens the [session](/specification/session/), decides which entities need a decision, batches [decide](/specification/decide/) requests without blocking frames, tracks [epochs](/glossary/#epoch) and [TTLs](/glossary/#ttl), and sends [reports](/specification/report/) and [telemetry](/specification/telemetry/). See [Godot SDK](/implementations/godot-sdk/).
+
+**[Local policy](/design/local-policy/)** *(proposed)* — a small model file trained on the service's decisions. The SDK evaluates it in-process, so a game can make decisions without the network and ship without the service. See [Policy format](/specification/policy-format/).
+
+## Decision service
+
+A separate process that owns everything AI-related: validation against the manifest, per-entity [memory](/glossary/#memory), provider calls and credentials, bounded telemetry and a debug console. *Proposed:* a persistent decision log and the training of local policies. See [Reference service](/implementations/service/).
+
+## Model provider
+
+The model API that makes the typed choice. The service isolates the game from provider details, so the provider can change without touching the game.
+
+## Trust boundaries
+
+- The game trusts nothing it receives: it checks the epoch, that the action is one it offered and that the decision is still fresh.
+- The service trusts nothing from the game: it validates every field against the manifest and keeps only scalar telemetry.
+- Provider keys never leave the service.
