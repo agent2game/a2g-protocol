@@ -5,7 +5,7 @@ sidebar:
   order: 6
 ---
 
-When an AI decision ends, the game reports how it ended and what changed. The service stores the last 8 reports per entity and includes them in the next `/v1/decide` for that entity — this is the entity's short-term [memory](/glossary/#memory).
+When an AI decision ends, the game reports how it ended and what changed. The service stores the last 8 reports per entity and includes them in the next `/v1/decide` for that entity, this is the entity's short-term [memory](/glossary/#memory).
 
 ## Request
 
@@ -29,8 +29,8 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 
 | Field | Notes |
 | --- | --- |
-| `decision_id` | The `decision_id` of the decision being reported. Reports for ids not issued to this session and entity, or already reported, are ignored — fake reports cannot poison memory |
-| `status` | `executed` — ran until replaced; `blocked` — the game refused to execute it; `expired` — TTL passed |
+| `decision_id` | The `decision_id` of the decision being reported. Reports for ids not issued to this session and entity, or already reported, are ignored, fake reports cannot poison memory |
+| `status` | `executed`: ran until replaced; `blocked`: the game refused to execute it; `expired`: TTL passed |
 | `outcome` | Up to 12 scalar values chosen by the game |
 
 The reference SDK reports numeric **deltas** of the observation and world (`<field>_delta`, world keys prefixed `world_`) between the decision and its end, plus `seconds`. This is a convention, not a requirement.
@@ -45,7 +45,7 @@ Memory for an entity is dropped when it disappears from [telemetry](/specificati
 
 ## Proposed: training fields
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
 :::
 

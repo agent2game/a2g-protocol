@@ -1,6 +1,6 @@
 ---
 title: POST /v1/context
-description: Add, replace or remove scopes and profiles during a session — for example when a level loads.
+description: Add, replace or remove scopes and profiles during a session, for example when a level loads.
 sidebar:
   order: 4
 ---
@@ -33,7 +33,7 @@ Both are optional, but at least one must be present.
 
 ## Rules
 
-- The result must stay valid as a whole: every scope's `parent` exists, there are no cycles, field names are unique along each chain, and the limits of 64 scopes and 256 profiles hold. Otherwise the whole update is rejected with `400` and nothing changes.
+- The result must stay valid as a whole: every scope's `parent` exists, every profile's `type` is an entity type of the manifest, there are no cycles, field names are unique along each chain, and the limits of 64 scopes and 256 profiles hold. Otherwise the whole update is rejected with `400` and nothing changes.
 - A scope cannot be removed while another scope names it as `parent` in the same result.
 - Changes apply to decide requests received after the response. Requests that name a removed scope or profile are rejected with `400`.
 - Updates are part of the session. When the game resends [`/v1/session`](/specification/session/) (for example after a `409`), it must include the current scopes and profiles in the manifest or send `/v1/context` again.

@@ -1,0 +1,68 @@
+---
+// "Why A2G" as a quiet two-column list; each marker uses the state colour it is about.
+const items = [
+	{ state: 'native', title: 'Your game stays in charge', text: 'Movement, physics, damage and rules stay in the game. The model only picks from actions the game offered.' },
+	{ state: 'fallback', title: 'Native AI is the safety net', text: 'Timeouts, invalid replies and stale decisions hand control back to the original behaviour. The game never breaks.' },
+	{ state: 'ai', title: 'Any decision model', text: 'OpenAI Decisions, TypeSafe Jev, open models such as Kev, or a small policy trained on your own playtests.' },
+	{ state: 'ai', title: 'Built for real games', text: 'Levels, characters, squads, events and a shared cache keep cost tied to decisions, not to the size of the world.' },
+	{ state: 'native', title: 'Game-agnostic', text: 'The service knows a game only through its manifest: 2D or 3D, enemies, allies, crowds or vehicles.' },
+	{ state: 'fallback', title: 'Secure by design', text: 'Typed choices, no keys in builds, session tokens and signed join tokens. See the <a href="/specification/security/">security model</a>.' },
+];
+---
+
+<ul class="principles not-content">
+	{
+		items.map((item) => (
+			<li data-state={item.state}>
+				<h3>{item.title}</h3>
+				<p set:html={item.text} />
+			</li>
+		))
+	}
+</ul>
+
+<style>
+	.principles {
+		list-style: none;
+		margin: 1.5rem 0 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1.6rem 2.5rem;
+	}
+	li {
+		position: relative;
+		padding-left: 1.4rem;
+	}
+	li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.45rem;
+		width: 0.5rem;
+		height: 0.5rem;
+		background: var(--a2g-ai);
+	}
+	li[data-state='native']::before {
+		background: var(--a2g-native);
+	}
+	li[data-state='fallback']::before {
+		background: var(--a2g-fallback);
+	}
+	h3 {
+		margin: 0;
+		font-size: var(--sl-text-base);
+		color: var(--sl-color-white);
+	}
+	p {
+		margin: 0.3rem 0 0;
+		font-size: var(--sl-text-sm);
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+	@media (max-width: 40rem) {
+		.principles {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

@@ -69,7 +69,7 @@ OpenAI Decisions ≈ $108 per hour · Jev ≈ $45 per hour (≈ $0.001–0.002 p
 **Development only, shipped with a local policy.** 40 hours of playtesting with a few enemies at ~$0.24 per hour:
 
 ```text
-≈ $10 in total with OpenAI Decisions, ≈ $4 with Jev — and $0 per decision after release
+≈ $10 in total with OpenAI Decisions, ≈ $4 with Jev, and $0 per decision after release
 ```
 
 The difference between the naive and designed cases is ~350×. It comes from **fewer decisions and smaller contexts**, not from a cheaper model.
@@ -89,7 +89,7 @@ The difference between the naive and designed cases is ~350×. It comes from **f
 Cost must have a ceiling the game controls. Proposed for 0.2:
 
 - The manifest or session declares budgets: per session per hour, per entity type, per game per day.
-- The service tracks spend from provider `usage` and answers `FALLBACK` with reason `budget` when a budget is exhausted — the player sees native AI, never an error.
+- The service tracks spend from provider `usage` and answers `FALLBACK` with reason `budget` when a budget is exhausted, the player sees native AI, never an error.
 - Higher-priority entities (bosses, story characters) draw from the budget first.
 
 ## What the reference service measures today

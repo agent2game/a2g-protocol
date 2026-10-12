@@ -93,6 +93,20 @@
           "ttl_ms": 8000
         }
       },
+      "bat": {
+        "description": "Agile cave hunter (6 HP).",
+        "fields": {
+          "hp_fraction": "number",
+          "distance_to_player": "number",
+          "sees_player": "boolean"
+        },
+        "actions": {
+          "chase": "Move toward the player",
+          "flee": "Move away from the player",
+          "idle": "Hold position"
+        },
+        "perception_radius": 120
+      },
       "boss": {
         "description": "Large guardian.",
         "fields": {

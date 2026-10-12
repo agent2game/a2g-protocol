@@ -3,32 +3,22 @@ title: Agent2Game Protocol
 description: An open protocol for plugging AI decisions into existing games.
 template: splash
 hero:
-  title: Agent2Game
-  tagline: An open protocol that lets existing games ask an AI model what their characters should do next — while the game stays in charge of what actually happens.
+  title: Give your game's characters a model to ask.
+  tagline: For game developers. A2G is an open protocol that adds AI decisions on top of the AI you already wrote. A model picks between the actions your characters can take, your code runs them, and your own AI takes over whenever the model can't help.
   actions:
     - text: Get started
       link: /docs/introduction/
-      icon: right-arrow
     - text: Read the specification
       link: /specification/overview/
       variant: minimal
-    - text: llms.txt for agents
-      link: /llms.txt
-      icon: document
-      variant: minimal
-      attrs:
-        target: _self
 ---
 
-import { Card, CardGrid, Steps } from '@astrojs/starlight/components';
+import { LinkCard, CardGrid, Steps } from '@astrojs/starlight/components';
 import Architecture from '../../components/Architecture.astro';
 import AgentPrompt from '../../components/AgentPrompt.astro';
+import Principles from '../../components/Principles.astro';
 
 <AgentPrompt />
-
-:::caution[Draft]
-Protocol version 0.1. Breaking changes are expected.
-:::
 
 ## How it works
 
@@ -38,50 +28,23 @@ Protocol version 0.1. Breaking changes are expected.
 
 1. **Describe the game once.** A [manifest](/glossary/#manifest) lists the world, entity types, what each entity observes and which actions exist.
 2. **Ask for decisions.** The game sends observations for a batch of entities and the actions legal right now. The service asks a model to pick one per entity.
-3. **Validate and execute.** The game checks each choice and performs it through its own code — or runs its [native AI](/glossary/#native-ai) if there is no valid, fresh decision.
+3. **Validate and execute.** The game checks each choice and performs it through its own code, or runs its [native AI](/glossary/#native-ai) if there is no valid, fresh decision.
 4. **Report back.** The game reports how each decision ended, which becomes the entity's [memory](/glossary/#memory) for its next decision.
-5. **Learn and ship** *(proposed)*. Decisions from playtests train a small [local policy](/design/local-policy/). The shipped game runs it offline — no service, no per-decision cost.
+5. **Learn and ship** *(proposed)*. Decisions from playtests train a small [local policy](/design/local-policy/). The shipped game runs it offline, with no service and no per-decision cost.
 
 </Steps>
 
 ## Why A2G
 
-Game AI is usually a hand-written state machine baked into each game. A2G turns plugging a model into that loop into a small, repeatable contract instead of a rewrite.
-
-<CardGrid>
-	<Card title="Game stays authoritative" icon="seti:godot">
-		Movement, physics, damage and rules stay in the game. The model only picks from actions the game offered.
-	</Card>
-	<Card title="Fallback by default" icon="approve-check">
-		The game's original AI is the default. Timeouts, invalid replies and stale decisions return control to it.
-	</Card>
-	<Card title="Game-agnostic" icon="list-format">
-		The service knows a game only through its manifest. No game logic lives on the AI side.
-	</Card>
-	<Card title="Observable" icon="magnifier">
-		Chosen action, executed state and outcome are reported separately, so you can see what really happened.
-	</Card>
-	<Card title="Any decision model" icon="random">
-		OpenAI Decisions, TypeSafe Jev, a general LLM or a local model — swapped in the service, not in the game.
-	</Card>
-	<Card title="Ship without the cloud" icon="rocket">
-		Proposed: train a small local policy on the model's decisions during development and ship the game with it.
-	</Card>
-</CardGrid>
+<Principles />
 
 ## Explore
 
 <CardGrid>
-	<Card title="Introduction" icon="open-book">
-		Protocol, SDK, adapter and service — what each part is. [Read →](/docs/introduction/)
-	</Card>
-	<Card title="Integrate a game" icon="puzzle">
-		Manifest, adapter and three hooks. [Read →](/guides/integrate/)
-	</Card>
-	<Card title="Specification" icon="document">
-		Manifest, session, decide, report, telemetry and fallback. [Read →](/specification/overview/)
-	</Card>
-	<Card title="Example" icon="rocket">
-		A Godot 4 RPG with AI-driven enemies, end to end. [Read →](/examples/lango/)
-	</Card>
+	<LinkCard title="Introduction" description="What the protocol, SDK, adapter and service each are." href="/docs/introduction/" />
+	<LinkCard title="Integrate a game" description="Manifest, adapter and a few hooks, with or without an SDK." href="/guides/integrate/" />
+	<LinkCard title="Specification" description="Manifest, messages, fallback, security and the JSON Schema." href="/specification/overview/" />
+	<LinkCard title="Lango example" description="A Godot 4 RPG with AI-driven enemies, end to end." href="/examples/lango/" />
 </CardGrid>
+
+<p class="draft-note">Protocol version 0.1 is a draft; breaking changes are expected. Follow it on <a href="https://github.com/agent2game/a2g-protocol">GitHub</a>.</p>

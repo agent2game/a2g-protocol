@@ -1,6 +1,6 @@
 ---
 title: Scaling to complex games
-description: How to use A2G for large worlds with levels, rich characters, groups and many players — and why cost must grow with decisions, not with the world.
+description: How to use A2G for large worlds with levels, rich characters, groups and many players, and why cost must grow with decisions, not with the world.
 sidebar:
   order: 1
 ---
@@ -29,7 +29,7 @@ Most games already have layers of behavior. Drive the **highest layer that benef
 | Director | "Increase pressure in zone B", "send a flanking group" | per minute, per level | Game systems |
 | Squad / faction | "Flank left", "retreat to cover", "guard the gate" | every few seconds, per group | Members' native AI |
 | Individual | "Chase", "flee", "talk" | every few seconds, per entity | Entity's native AI |
-| Frame-level | Aiming, steering, animation, pathfinding | every frame | **Always native — never A2G** |
+| Frame-level | Aiming, steering, animation, pathfinding | every frame | **Always native, never A2G** |
 
 A squad or director is just an entity type whose actions are high-level intents. It needs no body in the world. Members point to it with `parent`:
 
@@ -52,7 +52,7 @@ Descriptions, lore, character backstories and level briefings are large but rare
 - **`/v1/context`** adds scopes and profiles when a level loads or a character appears, so the manifest stays small at start.
 - The model input is ordered **static first**: world → scopes → profiles → dynamic state → entities. The shared prefix is identical between requests, which providers can cache, and it is paid once per batch.
 
-Per-decision cost then depends on the dynamic part only — a few hundred tokens — regardless of how much lore the game has.
+Per-decision cost then depends on the dynamic part only (a few hundred tokens) regardless of how much lore the game has.
 
 ## 3. Rich but bounded observations
 
@@ -68,7 +68,7 @@ Complex games need positions, references to other entities and collections:
 
 Two rules keep this cheap:
 
-- **The game decides relevance.** The adapter sends the 8 nearest allies, the 5 most valuable items, the current objective — not everything it knows. The service also adds `nearby` from telemetry positions without the game sending anything.
+- **The game decides relevance.** The adapter sends the 8 nearest allies, the 5 most valuable items, the current objective, not everything it knows. The service also adds `nearby` from telemetry positions without the game sending anything.
 - **A budget catches mistakes.** `max_input_tokens` per type makes the service refuse (with `FALLBACK`, `code: "budget"`) an entity whose context grew too large, instead of silently paying for it.
 
 ## 4. Events instead of polling
@@ -80,7 +80,7 @@ Polling every few seconds is simple, but in a large world most entities have not
 "refresh_ms": 30000
 ```
 
-The game asks with `"trigger": "player_spotted"` when it happens; the model is told why the entity is asking. An idle guard then costs one decision every 30 seconds at most — or nothing, if it never sees anyone.
+The game asks with `"trigger": "player_spotted"` when it happens; the model is told why the entity is asking. An idle guard then costs one decision every 30 seconds at most, or nothing, if it never sees anyone.
 
 ## 5. Reuse decisions
 
@@ -94,13 +94,13 @@ Many entities in many sessions face the same situation. The **decision cache** l
 }
 ```
 
-Here health is reduced to three bands and the player's health to three bands, so there are only a few dozen distinct situations per action set. Hundreds of goblins — across every player of the same game version — share those answers. Cached decisions come back with `cached: true`.
+Here health is reduced to three bands and the player's health to three bands, so there are only a few dozen distinct situations per action set. Hundreds of goblins (across every player of the same game version) share those answers. Cached decisions come back with `cached: true`.
 
 The cache is a choice the game controls: it trades individuality (memory, `nearby`, exact numbers are ignored) for cost. Use it for crowds and common enemies, not for story characters.
 
 ## 6. Learn local policies
 
-Reports already record context → decision → outcome. Over time this is a dataset. A [local policy](/design/local-policy/) — a small model trained on those decisions and shipped with the game — answers common cases in the game itself and leaves the model for new or high-stakes situations. This part is still a proposal.
+Reports already record context → decision → outcome. Over time this is a dataset. A [local policy](/design/local-policy/) (a small model trained on those decisions and shipped with the game) answers common cases in the game itself and leaves the model for new or high-stakes situations. This part is still a proposal.
 
 ## Putting it together
 

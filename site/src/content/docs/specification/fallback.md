@@ -16,7 +16,7 @@ Switching modes increments [`epoch`](/glossary/#epoch), so late replies are disc
 
 ## Five modes with a local policy
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 Part of the planned [local policy](/design/local-policy/). The `ai` mode above becomes `service`.
 :::
 
@@ -45,8 +45,8 @@ At any moment each entity is in one of these states, reported as the decision's 
 ## Fallback triggers
 
 - service unreachable, timed out or busy;
-- non-`200` response: `401` (reopen the session with a fresh credential), `403` (stop asking), `409` (resend the session), `429` (back off for `Retry-After`) — see [Security](/specification/security/#errors);
-- `source: FALLBACK` for the entity — its `code` says why: `unavailable`, `busy`, `refused`, `invalid_choice` or `budget` (see [fallback codes](/specification/decide/#fallback-codes));
+- non-`200` response: `401` (reopen the session with a fresh credential), `403` (stop asking), `409` (resend the session), `429` (back off for `Retry-After`), see [Security](/specification/security/#errors);
+- `source: FALLBACK` for the entity, its `code` says why: `unavailable`, `busy`, `refused`, `invalid_choice` or `budget` (see [fallback codes](/specification/decide/#fallback-codes));
 - action not in the `legal_actions` the game sent;
 - decision older than `ttl_ms`;
 - `epoch` mismatch, or the entity no longer exists;

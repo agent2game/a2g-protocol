@@ -1,6 +1,6 @@
 ---
 title: Lango (Godot 4)
-description: A complete A2G integration in an existing Godot RPG — manifest with scopes, groups, events and cache, adapter, hooks, security profile, messages on the wire and debugging tools.
+description: A complete A2G integration in an existing Godot RPG, manifest with scopes, groups, events and cache, adapter, hooks, security profile, messages on the wire and debugging tools.
 ---
 
 [Lango](https://github.com/Delta12Studio/Lango_GodotRPG) is an open-source top-down 2D action RPG by Delta12Studio. The player explores outdoor levels, caves and a dungeon, and fights bees, bats and a boss that damage by body contact. Its enemies run a classic state machine: `IDLE`, `WANDER`, `CHASE`.
@@ -8,7 +8,7 @@ description: A complete A2G integration in an existing Godot RPG — manifest wi
 This page shows Lango on the **full A2G protocol 0.1**: what runs today, and how the same integration uses scopes, groups, events, the decision cache and the security model.
 
 :::caution[What runs today]
-The running integration uses the core of 0.1: manifest, batched decide, report, telemetry, situation context and the `local` security profile. Sections and snippets marked **Target** use features that are specified but not yet implemented in the [reference service and Godot SDK](/implementations/service/#implementation-status). Scope and profile texts in the target manifest are written for this example.
+The running integration now uses 0.1 in the `local` security profile: scopes per level type (the boss arena is added at runtime with `/v1/context`), the `queen_bee` profile, bees spawned by the boss as her group, `hit` / `player_spotted` / `player_lost` events, token budgets and a decision cache for bees. Sections marked **Target** still describe the `client` security profile, which is specified but not yet implemented in the [reference service and Godot SDK](/implementations/service/#implementation-status); details such as scope texts may differ from the running manifest.
 
 The upstream repository is the original **Godot 3** game. The Godot 4 conversion and all A2G code exist only in a local working copy and are **not yet published**.
 :::
@@ -32,7 +32,7 @@ The upstream repository is the original **Godot 3** game. The Godot 4 conversion
 | File | Kind | Purpose |
 | --- | --- | --- |
 | `a2g_manifest.json` | new | World, area scopes, entity types, events, cache rules |
-| `A2G/A2GClient.gd` | new, SDK | The [Godot SDK](/implementations/godot-sdk/), autoload `A2G` — no Lango-specific code |
+| `A2G/A2GClient.gd` | new, SDK | The [Godot SDK](/implementations/godot-sdk/), autoload `A2G`, no Lango-specific code |
 | `A2G/LangoA2G.gd` | new, adapter | All Lango-specific glue, autoload `LangoA2G` (~100 lines) |
 | `Enemies/Enemy.gd`, `Bee.gd`, `Boss.gd` | changed | Register with A2G and ask it first; target: two `notify` calls for events |
 | `project.godot` | changed | Two autoloads |
@@ -42,7 +42,7 @@ The original state machine was not removed or rewritten. A `FLEE` state exists o
 
 ## 1. Manifest
 
-**Target** — the manifest Lango uses on full 0.1. Fields and actions are those of the running game; scopes, groups, events, budget and cache are the additions.
+**Target**: the manifest Lango uses on full 0.1. Fields and actions are those of the running game; scopes, groups, events, budget and cache are the additions.
 
 ```json title="a2g_manifest.json"
 {
@@ -144,7 +144,7 @@ func execute(enemy, action: String, delta: float) -> bool:
 	return executed
 ```
 
-**Target** additions — a few lines:
+**Target** additions: a few lines:
 
 ```gdscript title="A2G/LangoA2G.gd (target additions)"
 const AREAS = {"Level": "outdoors", "CaveLevel": "caves", "Dangeon": "dungeon", "Boss": "boss_arena"}
@@ -182,7 +182,7 @@ func _physics_process(delta):
 		IDLE: ...
 ```
 
-**Target** — events are one call where the game already reacts:
+**Target**: events are one call where the game already reacts:
 
 ```gdscript
 func _on_HurtBox_area_entered(area):
@@ -215,7 +215,7 @@ If Lango gained online co-op, the host or a dedicated server would run the SDK i
 
 **Target** shapes on full 0.1, `client` profile. Observations and timings are modelled on a running session; tokens, hashes and ids are illustrative and shortened.
 
-**Session** — the game first gets a join token from the studio backend:
+**Session**: the game first gets a join token from the studio backend:
 
 ```http
 POST /v1/session
@@ -230,7 +230,7 @@ Authorization: Bearer eyJhbGciOiJFZERTQSJ9…   ← join token: game "lango", ma
 { "a2g": "0.1", "ok": true, "manifest_hash": "sha256:5c1e…", "session_token": "s_7Hq…", "expires_in": 3600 }
 ```
 
-**Decide** — in the boss room, a bee was just hit; it belongs to the boss:
+**Decide**: in the boss room, a bee was just hit; it belongs to the boss:
 
 ```http
 POST /v1/decide
@@ -260,7 +260,7 @@ Authorization: Bearer s_7Hq…
 }
 ```
 
-**Decide response** — the second bee's situation was already answered for another bee, so it comes from the cache:
+**Decide response**: the second bee's situation was already answered for another bee, so it comes from the cache:
 
 ```json
 {
@@ -276,7 +276,7 @@ Authorization: Bearer s_7Hq…
 }
 ```
 
-**Report** — when the first decision ended:
+**Report**: when the first decision ended:
 
 ```json
 {
@@ -289,9 +289,9 @@ Authorization: Bearer s_7Hq…
 }
 ```
 
-**Context** — not needed for Lango's fixed areas, which are all in the manifest. A game with generated levels would send [`/v1/context`](/specification/context/) when one loads.
+**Context**: not needed for Lango's fixed areas, which are all in the manifest. A game with generated levels would send [`/v1/context`](/specification/context/) when one loads.
 
-**Telemetry** — every second, with the active scope and each bee's `parent`, so the boss sees all its brood, not only those in the current batch.
+**Telemetry**: every second, with the active scope and each bee's `parent`, so the boss sees all its brood, not only those in the current batch.
 
 ## 6. Debugging tools
 
@@ -303,7 +303,7 @@ Authorization: Bearer s_7Hq…
 
 ## Result
 
-Today the full core loop — manifest → batched observations → typed choice → validated action → reported outcome → memory — works in a real game, and switching back to FSM restores the original behavior.
+Today the full core loop (manifest → batched observations → typed choice → validated action → reported outcome → memory) works in a real game, and switching back to FSM restores the original behavior.
 
 The target version adds per-area context, boss-led groups, event-driven requests, a shared cache for bees and a release-ready security profile, without changing the game's state machine.
 

@@ -1,11 +1,11 @@
 ---
 title: Decision providers
-description: Which models can make A2G decisions — OpenAI Decisions, TypeSafe Jev and open Jev-compatible models such as Kev, Laya and decider, general LLMs and local policies — and how each is connected.
+description: Which models can make A2G decisions (OpenAI Decisions, TypeSafe Jev and open Jev-compatible models such as Kev, Laya and decider, general LLMs and local policies) and how each is connected.
 sidebar:
   order: 4
 ---
 
-The protocol does not name a model. A **decision provider** is anything that, given context and a list of options, returns one option — ideally with probabilities. The decision service hides the provider from the game: switching providers changes service configuration, not game code.
+The protocol does not name a model. A **decision provider** is anything that, given context and a list of options, returns one option, ideally with probabilities. The decision service hides the provider from the game: switching providers changes service configuration, not game code.
 
 :::note[Status]
 The 0.1 reference service supports **OpenAI Decisions** only. Other providers below are described as integration designs.
@@ -26,7 +26,7 @@ The 0.1 reference service supports **OpenAI Decisions** only. Other providers be
 
 The service turns one [decide](/specification/decide/) batch into **one provider request**:
 
-- **Shared context** — world text, world state, scope and profile text — becomes the provider's input/state.
+- **Shared context** (world text, world state, scope and profile text) becomes the provider's input/state.
 - **Each entity** becomes one typed choice question. Its options are exactly the entity's `legal_actions`, described with the manifest's action descriptions.
 - The answer's choice becomes `action`; the provider's confidence becomes `confidence`. A refusal or an option outside `legal_actions` becomes `FALLBACK` for that entity only.
 
@@ -49,15 +49,15 @@ This is the provider used by the reference service and the [Lango example](/exam
 - **Request:** `state` (shared context) and `questions` as a map `{id: {type: "choice", instructions, criteria: {option: description}}}`. Up to 255 options per choice.
 - **Response:** `answers` by id with `choice`, `probabilities` and `confidence`, plus `usage.input_tokens`.
 - **Key:** create one at [console.typesafe.ai/keys](https://console.typesafe.ai/keys); the service would read `TYPESAFE_API_KEY`.
-- **Limits:** 64k tokens per request; by default 100k tokens/s and 80 requests/s (higher on enterprise plans). Returns 429/529 under load — retry with backoff or fall back.
-- **Notes:** the docs advise keeping the state focused, since unrelated content lowers accuracy — another reason to send only relevant objects.
+- **Limits:** 64k tokens per request; by default 100k tokens/s and 80 requests/s (higher on enterprise plans). Returns 429/529 under load, retry with backoff or fall back.
+- **Notes:** the docs advise keeping the state focused, since unrelated content lowers accuracy, another reason to send only relevant objects.
 - **Docs:** [TypeSafe API](https://docs.typesafe.ai/api.md).
 
 Mapping is direct: `input` → `state`, `questions[].choices` → `criteria`, `name` → question id.
 
 ## Jev-compatible open models
 
-TypeSafe's System One API (`POST /v1/systemone` with `state` and a map of typed `questions`) has become a de facto standard: a community of open models and runtimes speaks the same wire format, catalogued in [awesome-jev](https://github.com/yibie/awesome-jev) (600+ projects). For A2G this means **one provider adapter covers TypeSafe Jev and every compatible model** — switching is a base-URL change, and most of them run locally, offline and free per decision.
+TypeSafe's System One API (`POST /v1/systemone` with `state` and a map of typed `questions`) has become a de facto standard: a community of open models and runtimes speaks the same wire format, catalogued in [awesome-jev](https://github.com/yibie/awesome-jev) (600+ projects). For A2G this means **one provider adapter covers TypeSafe Jev and every compatible model**, switching is a base-URL change, and most of them run locally, offline and free per decision.
 
 They fit A2G's request shape directly: one shared `state` (world, scopes, profiles, all entities in the batch) and one Choice question per entity whose criteria are its `legal_actions`. Every answer carries a probability per option and a confidence.
 
@@ -71,17 +71,17 @@ The seven best fits, by adoption and suitability:
 | [decider](https://github.com/Mapika/decider) | Open models (2B–31B) + SDK and server; game demos (Tetris, Pong, Connect Four) | ~1k ★; decider-2b ~330k downloads/month | 2B GGUF on 8 CPU threads: 0.12–0.31 s | CPU (GGUF via library), ~4 GB GPU (2B) | Apache-2.0 | ★★★★ |
 | [NeoHorse-Jev-4B](https://github.com/TokenRhythm/NeoHorse) | 4B open model; vLLM/SGLang or native runtime; includes game evaluations | ~1.7k ★ | not documented | GPU | Apache-2.0 | ★★★ |
 | [NanoJev](https://github.com/TianyuCodings/NanoJev) | 0.6B model with decision heads, trained per task; batches many states in one pass | ~2.5k ★ | not documented | small GPU | MIT (code) | ★★★ |
-| [jevlike](https://github.com/vinnylarouge/jevlike) | Library for tiny trained scorers (e.g. a 0.7M-parameter, 2.8 MB model) — down to microcontrollers | ~1.4k ★ | sub-millisecond class | anything, incl. ESP32 | MIT | ★★★ |
+| [jevlike](https://github.com/vinnylarouge/jevlike) | Library for tiny trained scorers (e.g. a 0.7M-parameter, 2.8 MB model), down to microcontrollers | ~1.4k ★ | sub-millisecond class | anything, incl. ESP32 | MIT | ★★★ |
 
 ¹ GitHub stars and Hugging Face downloads as seen on 2026-10-12. Quality figures in these projects are mostly self-reported; evaluate on your own game.
 
 **How to choose**
 
-- **Kev** — the default local choice: same API as Jev, calibrated probabilities, runs on a developer's Mac, and can be fine-tuned on your game's logged decisions. At 4B its accuracy is below Jev's; the 27B is close to it.
-- **llama.cpp** — the easiest way to serve Kev, Laya and others behind one binary on any hardware. The endpoint is new (October 2026), so pin a version.
-- **Laya** — when speed or CPU-only matters most. Its English context is 512 tokens and all option labels share a small budget, so keep observations compact and options few; it works best after fine-tuning on your domain.
-- **decider** — CPU-friendly and built with games in mind; serve GGUF through its library.
-- **NeoHorse, NanoJev, jevlike** — less a general provider than a path to a [local policy](/design/local-policy/): small models trained on your game's decisions that can beat a general model on that one game, and ship inside it.
+- **Kev**: the default local choice: same API as Jev, calibrated probabilities, runs on a developer's Mac, and can be fine-tuned on your game's logged decisions. At 4B its accuracy is below Jev's; the 27B is close to it.
+- **llama.cpp**: the easiest way to serve Kev, Laya and others behind one binary on any hardware. The endpoint is new (October 2026), so pin a version.
+- **Laya**: when speed or CPU-only matters most. Its English context is 512 tokens and all option labels share a small budget, so keep observations compact and options few; it works best after fine-tuning on your domain.
+- **decider**: CPU-friendly and built with games in mind; serve GGUF through its library.
+- **NeoHorse, NanoJev, jevlike**: less a general provider than a path to a [local policy](/design/local-policy/): small models trained on your game's decisions that can beat a general model on that one game, and ship inside it.
 
 **Caveats**
 
@@ -111,7 +111,7 @@ Not a model call at all: a small classifier per entity type, trained on logged c
 
 - **Pros:** free, instant, offline, deterministic.
 - **Cons:** only as good as the data; needs retraining when the game changes; no understanding of new text.
-- **Best for:** the common cases, with a model handling the rest — or all cases in a shipped offline game. See [Local policy](/design/local-policy/) and [Policy format](/specification/policy-format/).
+- **Best for:** the common cases, with a model handling the rest, or all cases in a shipped offline game. See [Local policy](/design/local-policy/) and [Policy format](/specification/policy-format/).
 
 ## Combining providers (proposed)
 
@@ -147,6 +147,6 @@ Proposed service configuration:
 
 ## Where keys live
 
-- Keys are configured **only in the decision service** — environment variables or a secret manager.
+- Keys are configured **only in the decision service**, environment variables or a secret manager.
 - A game build never contains a provider key. Hosted services give the game a short-lived session token instead.
 - A studio can use its own provider accounts ("bring your own key") or a hosted A2G account.

@@ -78,7 +78,7 @@ Only `entity_types` is required. Everything else is optional, so a small game ca
 
 | Key | Meaning | Limits |
 | --- | --- | --- |
-| `description` | Role and character of the type — the main lever on behavior | ≤ 1000 chars |
+| `description` | Role and character of the type, the main lever on behavior | ≤ 1000 chars |
 | `fields` | Schema of what one entity observes ([field types](#field-types)) | ≤ 24 fields |
 | `actions` | Action name → description shown to the model. Empty (`{}`) makes the type **observe-only**: reported in telemetry and visible to others, never decided (e.g. the player) | 0–32 actions, ≤ 300 chars each |
 | `events` | Event name → description. Things that can make an entity ask for a decision now; see [events](#events) | ≤ 16 events, ≤ 300 chars each |
@@ -86,7 +86,7 @@ Only `entity_types` is required. Everything else is optional, so a small game ca
 | `refresh_ms` | How often an SDK should re-ask **without** an event. A hint, not a guarantee | 1000–600000, SDK default |
 | `perception_radius` | Distance (in the game's position units) within which this type notices other entities; enables `nearby` and, for observe-only types, `nearby_counts` | > 0 |
 | `max_input_tokens` | Budget for the entity-specific part of the model input; see [token budget](#token-budget) | 50–20000 |
-| `cache` | Rules for reusing decisions across equivalent situations; see [decision cache](#decision-cache) | — |
+| `cache` | Rules for reusing decisions across equivalent situations; see [decision cache](#decision-cache) | n/a |
 
 A type does not have to be a visible object. A **squad**, a **faction** or a level **director** can be an entity type whose actions are high-level intents, with ordinary entities pointing to it as their [`parent`](/specification/decide/#groups). See [Scaling to complex games](/design/scaling/#1-decide-at-the-right-level).
 
@@ -103,7 +103,7 @@ A type does not have to be a visible object. A **squad**, a **faction** or a lev
 | `"entity_ref"` | The id of another entity in the same session | `"72259471404"` |
 | `{"list": {...}, "max": N}` | Up to `N` objects, each with exactly the listed sub-fields | see below |
 
-A list describes a bounded collection — nearby allies, visible items, the inventory:
+A list describes a bounded collection, nearby allies, visible items, the inventory:
 
 ```json
 "nearby_allies": {
@@ -114,13 +114,13 @@ A list describes a bounded collection — nearby allies, visible items, the inve
 
 - `max` is 1–32. Sub-fields may use any type except another list.
 - **The game decides relevance**: send the 8 nearest allies, not all 300. The adapter is the right place for that filter.
-- Every message must send **exactly** the declared fields of each object — no missing, no extra.
+- Every message must send **exactly** the declared fields of each object, no missing, no extra.
 
-Field names (in `world_fields`, `fields`, scope `fields` and list sub-fields) use letters, digits, `_` and `-` only — no dots — so cache keys such as `world.player_hp_fraction` are unambiguous.
+Field names (in `world_fields`, `fields`, scope `fields` and list sub-fields) use letters, digits, `_` and `-` only (no dots) so cache keys such as `world.player_hp_fraction` are unambiguous.
 
 ## Scopes
 
-A **scope** is a reusable block of static context — a level, a zone, a chapter — sent to the model once per request instead of being repeated for every entity.
+A **scope** is a reusable block of static context (a level, a zone, a chapter) sent to the model once per request instead of being repeated for every entity.
 
 ```json
 "scopes": {
@@ -137,7 +137,7 @@ A **scope** is a reusable block of static context — a level, a zone, a chapter
 
 A [decide](/specification/decide/#scope) request names the active scope and sends `scope_state` with exactly the fields of the whole chain. The model receives `world` → each scope from root to leaf → the dynamic state.
 
-Scopes can be declared in the manifest or added, replaced and removed later with [`POST /v1/context`](/specification/context/) — for example when a level loads.
+Scopes can be declared in the manifest or added, replaced and removed later with [`POST /v1/context`](/specification/context/), for example when a level loads.
 
 ## Profiles
 
@@ -152,7 +152,7 @@ A **profile** is static text about one character: name, role, history, personali
 | Key | Meaning | Limits |
 | --- | --- | --- |
 | `text` | Static description | ≤ 1000 chars |
-| `type` | Optional. If set, only entities of this type may use the profile | an entity type |
+| `type` | Optional. If set, only entities of this type may use the profile | an entity type declared in the manifest; otherwise the manifest or context update is rejected with `400` |
 
 An entity references a profile by name (`"profile": "queen_bee"`). The text is sent once per request even if several entities share it. Profiles can also be managed with [`POST /v1/context`](/specification/context/).
 
@@ -164,7 +164,7 @@ Events turn polling into reacting: an idle guard costs nothing until `player_spo
 
 ## Token budget
 
-`max_input_tokens` caps the **entity-specific** part of the model input: its observation, memory, `nearby`, `members`, `parent`, trigger and question. Shared parts — world, scopes, profiles, world and scope state — are not counted, because they are paid once per batch.
+`max_input_tokens` caps the **entity-specific** part of the model input: its observation, memory, `nearby`, `members`, `parent`, trigger and question. Shared parts (world, scopes, profiles, world and scope state) are not counted, because they are paid once per batch.
 
 The service estimates tokens before calling the provider (the reference service uses ~4 characters per token). An entity over budget is not sent; it gets a `FALLBACK` decision with `code: "budget"`. A budget is a guard against silently paying for oversized context, not a billing limit.
 
@@ -193,15 +193,15 @@ Two requests share a cached decision when all of these match:
 - the set of `legal_actions`;
 - every value in `key`, after bucketing.
 
-The service MUST derive the key from an unambiguous encoding of these parts — for example a hash of their canonical JSON array — so different texts or values can never produce the same key by concatenation.
+The service MUST derive the key from an unambiguous encoding of these parts (for example a hash of their canonical JSON array) so different texts or values can never produce the same key by concatenation.
 
-Everything else — memory, `nearby`, `members`, other fields — is **ignored** by the cache. That is the trade-off the game chooses: individuality for cost. A cache is shared by every session with the same manifest hash, so with many players one model call can serve hundreds of identical goblins. Only trusted (`server`-profile) sessions write to the shared cache; see [shared-cache safety](/specification/security/#shared-cache-safety).
+Everything else (memory, `nearby`, `members`, other fields) is **ignored** by the cache. That is the trade-off the game chooses: individuality for cost. A cache is shared by every session with the same manifest hash, so with many players one model call can serve hundreds of identical goblins. Only trusted (`server`-profile) sessions write to the shared cache; see [shared-cache safety](/specification/security/#shared-cache-safety).
 
 A reused decision is returned with `cached: true` and counts as a normal `AI` decision for memory and reports.
 
 ## Manifest hash
 
-The service identifies a manifest by the SHA-256 of its canonical JSON — keys sorted, no insignificant whitespace, UTF-8 — **excluding** `scopes` and `profiles`, which may change during a session. It is returned by [`/v1/session`](/specification/session/) and keys the decision cache and, later, [local policies](/design/local-policy/).
+The service identifies a manifest by the SHA-256 of its canonical JSON (keys sorted, no insignificant whitespace, UTF-8) **excluding** `scopes` and `profiles`, which may change during a session. It is returned by [`/v1/session`](/specification/session/) and keys the decision cache and, later, [local policies](/design/local-policy/).
 
 ## Writing a good manifest
 

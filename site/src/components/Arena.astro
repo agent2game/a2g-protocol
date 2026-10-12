@@ -1,0 +1,618 @@
+---
+// A tiny playable demo of the protocol: bees in a pixel arena, run either by native AI or by A2G decisions.
+// Everything is simulated in the browser (no network calls). Colours follow the protocol states.
+---
+
+<figure class="arena not-content" aria-labelledby="arena-caption">
+	<div class="screen">
+		<canvas width="144" height="84" aria-hidden="true"></canvas>
+		<div class="labels" aria-hidden="true"></div>
+		<p class="hud" aria-live="polite"></p>
+		<p class="banner" hidden></p>
+	</div>
+
+	<div class="controls">
+		<div class="mode" role="group" aria-label="Who controls the bees">
+			<button type="button" data-mode="native" aria-pressed="false">Native AI only</button>
+			<button type="button" data-mode="a2g" aria-pressed="true">Native AI + A2G</button>
+		</div>
+		<button type="button" class="hit">Hit a bee</button>
+	</div>
+
+	<ol class="log" aria-live="polite" aria-label="Protocol messages"></ol>
+
+	<figcaption id="arena-caption">
+		A simulated session. The player fights on its own, and you can click a bee to hit it too. The bees' own AI
+		never goes away: A2G adds a decision when the model answers, and a bee falls back to its native rule when it doesn't.
+		<span class="key native">native AI</span> <span class="key ai">A2G decision</span>
+		<span class="key fallback">fallback after a failed request</span>
+	</figcaption>
+</figure>
+
+<script>
+	type Mode = 'native' | 'a2g';
+	type Source = 'NATIVE' | 'AI' | 'FALLBACK';
+	type Action = 'chase' | 'flee' | 'encircle' | 'idle';
+	interface Bee {
+		id: string;
+		x: number;
+		y: number;
+		hp: number;
+		action: Action;
+		source: Source;
+		confidence: number;
+		reason: string;
+		until: number;
+		pending: boolean;
+		trigger: string | null;
+		flash: number;
+		dead: number;
+		phase: number;
+		label: HTMLElement;
+	}
+
+	const W = 144;
+	const H = 84;
+	const COLORS = { NATIVE: '#6cb6f2', AI: '#4fd3a0', FALLBACK: '#f2bf55' };
+
+	for (const root of document.querySelectorAll<HTMLElement>('.arena')) {
+		const canvas = root.querySelector('canvas')!;
+		const ctx = canvas.getContext('2d')!;
+		const labels = root.querySelector<HTMLElement>('.labels')!;
+		const log = root.querySelector<HTMLOListElement>('.log')!;
+		const banner = root.querySelector<HTMLElement>('.banner')!;
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		let mode: Mode = 'a2g';
+		let epoch = 1;
+		let inflight = false;
+		let cheat = false;
+		let now = 0;
+		let visible = true;
+		const player = { x: W / 2, y: H / 2, t: 0, cooldown: 1, swing: 0, sx: 0, sy: 0 };
+
+		const ground = document.createElement('canvas');
+		ground.width = W;
+		ground.height = H;
+		const g = ground.getContext('2d')!;
+		g.fillStyle = '#1d2a22';
+		g.fillRect(0, 0, W, H);
+		let seed = 7;
+		const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+		for (let i = 0; i < 150; i++) {
+			g.fillStyle = rand() > 0.5 ? '#25382b' : '#18231c';
+			g.fillRect(Math.floor(rand() * W), Math.floor(rand() * H), 1, 1);
+		}
+		for (let i = 0; i < 9; i++) {
+			const x = Math.floor(rand() * W);
+			const y = Math.floor(rand() * H);
+			g.fillStyle = '#2f4a37';
+			g.fillRect(x, y, 1, 2);
+			g.fillRect(x + 2, y + 1, 1, 1);
+		}
+
+		const spawn = (index: number): Bee => {
+			const label = document.createElement('span');
+			labels.append(label);
+			const corner = index % 4;
+			return {
+				id: `bee-${index + 1}`,
+				x: corner % 2 ? W - 12 : 12,
+				y: corner < 2 ? 30 : H - 10,
+				hp: 3,
+				action: 'idle',
+				source: 'NATIVE',
+				confidence: 0,
+				reason: '',
+				until: 0,
+				pending: false,
+				trigger: null,
+				flash: 0,
+				dead: 0,
+				phase: index * 1.7,
+				label,
+			};
+		};
+		const bees = [0, 1, 2, 3].map(spawn);
+
+		const line = (html: string, kind = '') => {
+			const item = document.createElement('li');
+			item.className = kind;
+			item.innerHTML = html;
+			log.prepend(item);
+			while (log.children.length > 5) log.lastElementChild!.remove();
+		};
+		const escape = (value: string) => value.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
+
+		// A stand-in for the model: the same signals a real manifest would expose.
+		const choose = (bee: Bee): [Action, number, string] => {
+			if (cheat) return ['flee', 1, 'cheat'];
+			const dist = Math.hypot(bee.x - player.x, bee.y - player.y);
+			const allies = bees.filter((b) => b !== bee && !b.dead && Math.hypot(b.x - player.x, b.y - player.y) < 60).length;
+			if (bee.hp === 1) return ['flee', 0.62 + Math.random() * 0.2, 'low'];
+			if (bee.trigger === 'hit') return allies >= 2 ? ['encircle', 0.58, 'together'] : ['flee', 0.55, 'hit'];
+			if (allies >= 1 && dist < 60) return ['encircle', 0.6 + Math.random() * 0.25, 'together'];
+			if (dist < 85) return ['chase', 0.55 + Math.random() * 0.3, 'reach'];
+			return ['idle', 0.5 + Math.random() * 0.2, 'far'];
+		};
+
+		const decide = () => {
+			if (mode !== 'a2g' || inflight) return;
+			const batch = bees.filter((b) => !b.dead && !b.pending && (b.trigger || now > b.until));
+			if (!batch.length) return;
+			inflight = true;
+			batch.forEach((b) => (b.pending = true));
+			const sent = epoch;
+			const triggers = batch.filter((b) => b.trigger).map((b) => `${b.id}: ${b.trigger}`);
+			line(`<b>→ decide</b> ${batch.length} ${batch.length === 1 ? 'entity' : 'entities'}${triggers.length ? ` · trigger ${escape(triggers.join(', '))}` : ''}`, 'out');
+			setTimeout(() => {
+				inflight = false;
+				for (const bee of batch) {
+					bee.pending = false;
+					if (sent !== epoch || mode !== 'a2g' || bee.dead) continue;
+					const failed = !cheat && Math.random() < 0.06;
+					if (failed) {
+						bee.source = 'FALLBACK';
+						bee.until = now + 3.5;
+						bee.trigger = null;
+						line(`<b>← ${bee.id}</b> FALLBACK <i>unavailable</i> · native AI takes over`, 'fallback');
+						say(`No answer for ${nameOf(bee)}. It keeps using its own AI, and the game goes on.`);
+						continue;
+					}
+					const [action, confidence, reason] = choose(bee);
+					if (action !== bee.action || bee.source !== 'AI' || reason === 'low' || reason === 'hit') say(WHY[reason](nameOf(bee)));
+					bee.action = action;
+					bee.confidence = confidence;
+					bee.reason = reason;
+					bee.source = 'AI';
+					bee.until = now + 5 + Math.random() * 1.5;
+					bee.trigger = null;
+					const id = `d_${Math.random().toString(36).slice(2, 6)}`;
+					line(`<b>← ${bee.id}</b> ${action} ${Math.round(confidence * 100)}% · ${id}`, 'ai');
+				}
+			}, 350 + Math.random() * 350);
+		};
+
+		const nativeAction = (bee: Bee): Action => (Math.hypot(bee.x - player.x, bee.y - player.y) < 35 ? 'chase' : 'idle');
+
+		const step = (dt: number) => {
+			now += dt;
+			player.t += dt * 0.24;
+			player.cooldown -= dt;
+			player.swing = Math.max(0, player.swing - dt);
+			if (player.cooldown <= 0) {
+				const target = bees
+					.filter((b) => !b.dead)
+					.sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y))[0];
+				if (target && Math.hypot(target.x - player.x, target.y - player.y) < 13) {
+					player.swing = 0.22;
+					[player.sx, player.sy] = [Math.sign(target.x - player.x), Math.sign(target.y - player.y)];
+					player.cooldown = 1.6;
+					hit(target);
+				}
+			}
+			player.x = W / 2 + Math.sin(player.t) * 44;
+			player.y = H / 2 + 10 + Math.sin(player.t * 1.7) * 14;
+			for (const bee of bees) {
+				if (bee.dead) {
+					if (now > bee.dead) {
+						Object.assign(bee, spawn(bees.indexOf(bee)), { label: bee.label });
+						labels.lastElementChild?.remove();
+					}
+					continue;
+				}
+				bee.flash = Math.max(0, bee.flash - dt);
+				bee.phase += dt * 4;
+				const live = mode === 'a2g' && bee.source === 'AI' && now < bee.until;
+				if (mode === 'a2g' && bee.source === 'AI' && now >= bee.until && !bee.pending) bee.source = 'FALLBACK';
+				const action = live ? bee.action : nativeAction(bee);
+				if (mode === 'native') bee.source = 'NATIVE';
+				const dx = player.x - bee.x;
+				const dy = player.y - bee.y;
+				const d = Math.hypot(dx, dy) || 1;
+				let vx = 0;
+				let vy = 0;
+				if (action === 'chase') [vx, vy] = d > 9 ? [dx / d, dy / d] : [0, 0];
+				if (action === 'flee') [vx, vy] = [-dx / d, -dy / d];
+				if (action === 'encircle') {
+					// Each bee takes its own slot on a ring around the player.
+					const angle = (bees.indexOf(bee) * Math.PI) / 2 + player.t * 0.8;
+					const tx = player.x + Math.cos(angle) * 22 - bee.x;
+					const ty = player.y + Math.sin(angle) * 16 - bee.y;
+					const td = Math.hypot(tx, ty) || 1;
+					[vx, vy] = td > 1.5 ? [tx / td, ty / td] : [0, 0];
+				}
+				if (action === 'idle') [vx, vy] = [Math.sin(bee.phase * 0.3) * 0.3, Math.cos(bee.phase * 0.23) * 0.3];
+				const speed = action === 'flee' ? 16 : 12;
+				bee.x = Math.min(W - 6, Math.max(6, bee.x + vx * speed * dt));
+				bee.y = Math.min(H - 6, Math.max(28, bee.y + vy * speed * dt));
+			}
+		};
+
+		const px = (x: number, y: number, w: number, h: number, color: string) => {
+			ctx.fillStyle = color;
+			ctx.fillRect(Math.round(x), Math.round(y), w, h);
+		};
+
+		const draw = () => {
+			ctx.drawImage(ground, 0, 0);
+			// player
+			const p = { x: Math.round(player.x) - 3, y: Math.round(player.y) - 4 };
+			px(p.x + 1, p.y + 8, 5, 1, '#0f1712');
+			px(p.x + 1, p.y, 5, 3, '#f1e3c6');
+			px(p.x + 2, p.y + 1, 1, 1, '#16181d');
+			px(p.x + 4, p.y + 1, 1, 1, '#16181d');
+			px(p.x, p.y + 3, 7, 3, '#4f7cff');
+			px(p.x + 1, p.y + 6, 2, 2, '#2b3a66');
+			px(p.x + 4, p.y + 6, 2, 2, '#2b3a66');
+			if (player.swing > 0) {
+				// sword slash toward the bee
+				const cx = Math.round(player.x) + player.sx * 6;
+				const cy = Math.round(player.y) + player.sy * 4;
+				px(cx - 2, cy, 5, 1, '#f4f6f8');
+				px(cx, cy - 2, 1, 5, '#f4f6f8');
+				px(cx - 1, cy - 1, 3, 3, '#ffffff');
+			} else px(p.x + 7, p.y + 2, 1, 4, '#d9dde3');
+			for (const bee of bees) {
+				const label = bee.label;
+				if (bee.dead) {
+					label.textContent = '';
+					continue;
+				}
+				const bx = Math.round(bee.x) - 3;
+				const by = Math.round(bee.y) - 2 + (Math.sin(bee.phase) > 0 ? 0 : 1);
+				const body = bee.flash > 0 ? '#ffffff' : '#f2c230';
+				px(bx, by, 6, 4, body);
+				px(bx + 2, by, 1, 4, '#16181d');
+				px(bx + 4, by, 1, 4, '#16181d');
+				px(bx + 1, by - 2 + (Math.sin(bee.phase * 2) > 0 ? 0 : 1), 3, 2, '#dfe9f2');
+				px(bx + 6, by + 1, 1, 1, '#16181d');
+				px(bx + 1, by - 4, 4, 1, COLORS[bee.source]);
+				for (let i = 0; i < bee.hp; i++) px(bx + i * 2, by + 5, 1, 1, '#e5484d');
+				const text =
+					bee.source === 'AI' ? `${bee.action} ${Math.round(bee.confidence * 100)}%` : bee.source === 'FALLBACK' ? 'native AI' : '';
+				label.textContent = bee.pending && mode === 'a2g' ? '…' : text;
+				label.dataset.source = bee.source;
+			}
+			// Place labels above their bees; push a label up when it would overlap one already placed.
+			const placed: { x: number; y: number }[] = [];
+			for (const bee of [...bees].filter((b) => !b.dead && b.label.textContent).sort((a, b) => b.y - a.y)) {
+				const x = Math.min(86, Math.max(14, (bee.x / W) * 100));
+				let y = Math.max(32, ((bee.y - 7) / H) * 100);
+				while (placed.some((p) => Math.abs(p.x - x) < 22 && Math.abs(p.y - y) < 11)) y -= 11;
+				placed.push({ x, y });
+				bee.label.style.left = `${x}%`;
+				bee.label.style.top = `${y}%`;
+			}
+		};
+
+		const hud = root.querySelector<HTMLElement>('.hud')!;
+		// The narrator tells what just happened and how A2G handled it, one message at a time.
+		const queue: { text: string; at: number }[] = [];
+		let shownAt = -10;
+		const say = (text: string, now_ = false) => {
+			if (now_) {
+				queue.length = 0;
+				hud.textContent = text;
+				shownAt = now;
+				return;
+			}
+			if (queue.some((item) => item.text === text) || hud.textContent === text) return;
+			queue.push({ text, at: now });
+			while (queue.length > 3) queue.shift();
+		};
+		const pump = () => {
+			// Skip stale news: keep only messages from the last 4 s, unless nothing newer exists.
+			while (queue.length > 1 && now - queue[0].at > 4) queue.shift();
+			if (queue.length && now - shownAt >= 3) {
+				hud.textContent = queue.shift()!.text;
+				shownAt = now;
+			}
+		};
+		const nameOf = (bee: Bee) => `Bee ${bee.id.split('-')[1]}`;
+		const WHY: Record<string, (name: string) => string> = {
+			low: (n) => `${n} is almost out of health, so the model tells it to run.`,
+			hit: (n) => `${n} just got hit, so the model tells it to back off.`,
+			together: (n) => `${n} has friends nearby, so the model tells it to circle the player with them.`,
+			reach: (n) => `The player is close, so the model tells ${n} to attack.`,
+			far: (n) => `The player is far away, so the model tells ${n} to wait.`,
+			cheat: () => 'Cheat code on. The game only allows the bees to flee, and the model has to follow.',
+		};
+
+		let last = 0;
+		let requestTimer = 0;
+		let hudTimer = 0;
+		const frame = (time: number) => {
+			const dt = Math.min(0.05, (time - (last || time)) / 1000);
+			last = time;
+			if (visible) {
+				step(reduced ? 0 : dt);
+				requestTimer += dt;
+				hudTimer += dt;
+				if (hudTimer > 0.25) {
+					hudTimer = 0;
+					pump();
+				}
+				if (requestTimer > 0.8) {
+					requestTimer = 0;
+					decide();
+				}
+				draw();
+			}
+			if (!reduced) requestAnimationFrame(frame);
+		};
+
+		const setMode = (next: Mode) => {
+			mode = next;
+			epoch += 1;
+			for (const b of bees) {
+				b.source = next === 'a2g' ? 'FALLBACK' : 'NATIVE';
+				b.until = 0;
+				b.trigger = null;
+			}
+			for (const button of root.querySelectorAll<HTMLButtonElement>('[data-mode]')) button.setAttribute('aria-pressed', String(button.dataset.mode === next));
+			line(next === 'a2g' ? `<b>session</b> epoch ${epoch} · native AI runs until the first decision arrives` : `<b>native AI</b> epoch ${epoch} · no requests, original behaviour`, next === 'a2g' ? 'out' : 'native');
+			say(
+				next === 'a2g'
+					? 'A2G is on. The bees keep their own AI, and a model now suggests smarter moves.'
+					: 'Native AI only. Every bee follows one simple rule: chase the player when close.',
+				true,
+			);
+			if (reduced) {
+				decide();
+				draw();
+			}
+		};
+
+		const hit = (bee: Bee, by: 'player' | 'you' = 'player') => {
+			bee.hp -= 1;
+			bee.flash = 0.15;
+			const who = by === 'you' ? 'You hit' : 'The player hit';
+			if (bee.hp <= 0) {
+				bee.dead = now + 3;
+				line(`<b>report</b> ${bee.id} defeated · others notified: ally_died`, 'out');
+				say(`${nameOf(bee)} is out. The other bees hear about it and ask the model again.`);
+				for (const other of bees) if (other !== bee && !other.dead) other.trigger = 'ally_died';
+			} else {
+				bee.trigger = 'hit';
+				if (mode === 'a2g') say(`${who} ${nameOf(bee)}. It asks the model again right away.`);
+				else say(`${who} ${nameOf(bee)}. With native AI only, it just keeps chasing.`);
+			}
+			if (reduced) {
+				decide();
+				draw();
+			}
+		};
+
+		canvas.parentElement!.addEventListener('pointerdown', (event) => {
+			const rect = canvas.getBoundingClientRect();
+			const x = ((event.clientX - rect.left) / rect.width) * W;
+			const y = ((event.clientY - rect.top) / rect.height) * H;
+			const target = bees.filter((b) => !b.dead).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
+			if (target && Math.hypot(target.x - x, target.y - y) < 12) hit(target, 'you');
+		});
+		root.querySelector('.hit')!.addEventListener('click', () => {
+			const target = bees.filter((b) => !b.dead).sort((a, b) => Math.hypot(a.x - player.x, a.y - player.y) - Math.hypot(b.x - player.x, b.y - player.y))[0];
+			if (target) hit(target, 'you');
+		});
+		for (const button of root.querySelectorAll<HTMLButtonElement>('[data-mode]')) button.addEventListener('click', () => setMode(button.dataset.mode as Mode));
+
+		// ↑ ↑ ↓ ↓ ← → ← → B A
+		const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+		let progress = 0;
+		addEventListener('keydown', (event) => {
+			progress = event.key.toLowerCase() === code[progress].toLowerCase() ? progress + 1 : event.key === code[0] ? 1 : 0;
+			if (progress < code.length) return;
+			progress = 0;
+			cheat = !cheat;
+			banner.hidden = !cheat;
+			banner.textContent = 'Cheat on: legal_actions = ["flee"]';
+			for (const b of bees) b.trigger = cheat ? 'cheat' : null;
+			if (mode !== 'a2g') setMode('a2g');
+			line(cheat ? '<b>cheat</b> legal_actions narrowed to ["flee"]' : '<b>cheat</b> off · full legal_actions restored', 'fallback');
+		});
+
+		new IntersectionObserver(([entry]) => (visible = entry.isIntersecting)).observe(root);
+		document.addEventListener('visibilitychange', () => (visible = !document.hidden));
+
+		line('<b>session</b> manifest accepted · 4 bees, 1 player', 'out');
+		say('The bees run their own AI. A2G lets them ask a model what to do next.', true);
+		if (reduced) {
+			decide();
+			draw();
+			setInterval(() => draw(), 500);
+		} else requestAnimationFrame(frame);
+	}
+</script>
+
+<style>
+	.arena {
+		margin: 0;
+		display: grid;
+		gap: 0.7rem;
+	}
+	.screen {
+		position: relative;
+		border-radius: 0.6rem;
+		overflow: hidden;
+		background: #1d2a22;
+		box-shadow:
+			0 0 0 1px rgb(255 255 255 / 0.06),
+			0 18px 50px -20px rgb(0 0 0 / 0.55);
+		cursor: crosshair;
+		touch-action: manipulation;
+	}
+	canvas {
+		display: block;
+		width: 100%;
+		height: auto;
+		aspect-ratio: 144 / 84;
+		image-rendering: pixelated;
+	}
+	.labels {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+	.labels :global(span) {
+		position: absolute;
+		transform: translate(-50%, -100%);
+		padding: 0.12rem 0.4rem;
+		border-radius: 0.3rem;
+		background: rgb(10 16 12 / 0.85);
+		font-family: var(--sl-font);
+		font-size: clamp(0.7rem, 1.4vw, 0.8rem);
+		font-weight: 600;
+		line-height: 1.25;
+		white-space: nowrap;
+		pointer-events: none;
+		color: #4fd3a0;
+	}
+	.labels :global(span:empty) {
+		display: none;
+	}
+	.labels :global(span[data-source='FALLBACK']) {
+		color: #f2bf55;
+	}
+	.labels :global(span[data-source='NATIVE']) {
+		color: #6cb6f2;
+	}
+	.hud {
+		position: absolute;
+		inset: 0.6rem 0.6rem auto 0.6rem;
+		margin: 0;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.4rem;
+		font-family: var(--sl-font);
+		font-size: clamp(0.82rem, 1.6vw, 0.95rem);
+		font-weight: 500;
+		line-height: 1.4;
+		color: #f1f5f2;
+		background: rgb(10 16 12 / 0.82);
+		pointer-events: none;
+		transition: opacity 0.25s;
+	}
+	.banner {
+		position: absolute;
+		inset: auto 0.6rem 0.6rem auto;
+		margin: 0;
+		padding: 0.2rem 0.5rem;
+		border-radius: 0.3rem;
+		background: #f2bf55;
+		color: #1d1405;
+		font-family: var(--a2g-pixel);
+		font-size: 0.8rem;
+	}
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.6rem;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.mode {
+		display: inline-flex;
+		padding: 0.2rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+	.mode button,
+	.hit {
+		font: inherit;
+		font-size: var(--sl-text-sm);
+		cursor: pointer;
+		border-radius: 0.35rem;
+	}
+	.mode button {
+		padding: 0.3rem 0.8rem;
+		border: 0;
+		background: transparent;
+		color: var(--sl-color-gray-2);
+	}
+	.mode button[aria-pressed='true'][data-mode='a2g'] {
+		background: var(--a2g-ai);
+		color: #07150f;
+		font-weight: 600;
+	}
+	.mode button[aria-pressed='true'][data-mode='native'] {
+		background: var(--a2g-native);
+		color: #061320;
+		font-weight: 600;
+	}
+	.hit {
+		padding: 0.35rem 0.8rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: transparent;
+		color: var(--sl-color-white);
+	}
+	.mode button:focus-visible,
+	.hit:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 2px;
+	}
+	.log {
+		list-style: none;
+		margin: 0;
+		padding: 0.6rem 0.8rem;
+		min-height: 7.6rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		font-family: var(--sl-font-mono);
+		font-size: 0.72rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+		overflow: hidden;
+	}
+	.log :global(li) {
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.log :global(li:first-child) {
+		color: var(--sl-color-white);
+	}
+	.log :global(b) {
+		font-weight: 600;
+	}
+	.log :global(.ai b) {
+		color: var(--a2g-ai);
+	}
+	.log :global(.fallback b) {
+		color: var(--a2g-fallback);
+	}
+	.log :global(.native b) {
+		color: var(--a2g-native);
+	}
+	.log :global(.out b) {
+		color: var(--sl-color-white);
+	}
+	figcaption {
+		font-size: var(--sl-text-xs);
+		color: var(--sl-color-gray-3);
+		line-height: 1.5;
+	}
+	.key {
+		white-space: nowrap;
+		margin-right: 0.7em;
+	}
+	.key::before {
+		content: '';
+		display: inline-block;
+		width: 0.55em;
+		height: 0.55em;
+		margin-right: 0.3em;
+		vertical-align: 0.05em;
+		background: currentColor;
+	}
+	.key.native {
+		color: var(--a2g-native);
+	}
+	.key.ai {
+		color: var(--a2g-ai);
+	}
+	.key.fallback {
+		color: var(--a2g-fallback);
+	}
+</style>

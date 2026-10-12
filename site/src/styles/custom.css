@@ -4,6 +4,17 @@
 	--sl-font: 'Inter Variable', system-ui, sans-serif;
 	--sl-font-mono: 'JetBrains Mono', ui-monospace, monospace;
 	--sl-content-width: 48rem;
+	/* The three control states of A2G, as in the reference debug overlay: native AI, AI decision, fallback. */
+	--a2g-native: #3f8fd2;
+	--a2g-ai: #2e9e73;
+	--a2g-fallback: #c98a12;
+	--a2g-pixel: 'Pixelify Sans Variable', ui-monospace, monospace;
+}
+
+:root:not([data-theme='light']) {
+	--a2g-native: #6cb6f2;
+	--a2g-ai: #4fd3a0;
+	--a2g-fallback: #f2bf55;
 }
 
 /* Starlight styles live in a cascade layer, so unlayered overrides must be scoped per theme. */
@@ -93,4 +104,10 @@
 		--sl-content-margin-inline: auto;
 		width: 100%;
 	}
+}
+
+.draft-note {
+	margin-top: 2.5rem;
+	font-size: var(--sl-text-sm);
+	color: var(--sl-color-gray-3);
 }

@@ -1,19 +1,19 @@
 ---
 title: Local policy
-description: Train a small in-game model on the big model's decisions during development, then ship the game with it — no service, no network, no per-decision cost.
+description: Train a small in-game model on the big model's decisions during development, then ship the game with it, no service, no network, no per-decision cost.
 sidebar:
   order: 2
 ---
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 This page describes a planned part of A2G. Protocol version stays **0.1**; the additions are marked as proposed in the specification.
 :::
 
 ## The idea
 
-During development the game asks a large model for decisions through the decision service. Every decision — context, chosen action, probabilities, outcome — is logged. From these logs A2G trains a small **local policy** per entity type and puts it into the game. The shipped game uses the local policy offline, with native AI as the safety net.
+During development the game asks a large model for decisions through the decision service. Every decision (context, chosen action, probabilities, outcome) is logged. From these logs A2G trains a small **local policy** per entity type and puts it into the game. The shipped game uses the local policy offline, with native AI as the safety net.
 
-The large model acts as a **teacher**; the local policy is the **student**. The protocol already defines everything both need: the [manifest](/specification/manifest/) gives the inputs (observation and world fields) and the outputs (actions), [decide](/specification/decide/) and [report](/specification/report/) produce training examples, and the local policy answers the same question the service answers — so game code and the adapter do not change.
+The large model acts as a **teacher**; the local policy is the **student**. The protocol already defines everything both need: the [manifest](/specification/manifest/) gives the inputs (observation and world fields) and the outputs (actions), [decide](/specification/decide/) and [report](/specification/report/) produce training examples, and the local policy answers the same question the service answers, so game code and the adapter do not change.
 
 ```text
  development                                         release
@@ -43,7 +43,7 @@ Failures always step down: `service` → `local` → `native`. No frame waits fo
 
 1. **Collect.** Play the game in `service` or `cascade` mode. The service writes every decision and its outcome to a persistent log, tagged with the [manifest hash](/glossary/#manifest-hash).
 2. **Widen coverage.** One developer plays in one style. Headless scenarios and bots running in `cascade` fill in situations a human rarely reaches. The training report shows where data is thin.
-3. **Train.** One action — a console button or a command — produces a new policy version with metrics: agreement with the teacher per entity type and per situation, model size, and readable rules for tree models.
+3. **Train.** One action (a console button or a command) produces a new policy version with metrics: agreement with the teacher per entity type and per situation, model size, and readable rules for tree models.
 4. **Verify.** Run in `shadow`: the model still decides, and the console shows how often the local policy would have chosen the same action. In `cascade`, watch the share of decisions that still need the service fall.
 5. **Ship.** Commit `a2g_policy.json` with the game, set the mode to `local`, and disable the SDK's network part for the release build.
 6. **Repeat** when the game changes. A changed manifest produces a new hash and the old policy stops loading; a balance change needs a new data epoch.
@@ -56,8 +56,8 @@ Failures always step down: `service` → `local` → `native`. No frame waits fo
 
 Two levels of training:
 
-- **Imitation** — copy the teacher. Simple and immediate, but the student cannot exceed the teacher and inherits its mistakes.
-- **Outcome-weighted** — weight examples by how the decision ended (HP kept, damage dealt, objective held). This needs the game developer to define what "good" means, and it is how a local policy can become better than its teacher.
+- **Imitation**: copy the teacher. Simple and immediate, but the student cannot exceed the teacher and inherits its mistakes.
+- **Outcome-weighted**: weight examples by how the decision ended (HP kept, damage dealt, objective held). This needs the game developer to define what "good" means, and it is how a local policy can become better than its teacher.
 
 ## One policy, every engine
 
@@ -69,7 +69,7 @@ SDKs are written per engine anyway: Godot, Unity, Unreal. To keep the policy its
 | ONNX | built-in runtime | built-in runtime | needs a native plugin | native libraries per platform | Optional export for larger models |
 | Shared native core (C/Rust) | plugin | module | GDExtension | build per platform | Later, if many SDKs exist |
 
-The format supports decision trees, tree ensembles and small neural networks (MLP). Open Jev-compatible projects show the other end of the same idea — fine-tuned [Kev](https://github.com/jaredpalmer/kev) models, task-trained [NanoJev](https://github.com/TianyuCodings/NanoJev) and tiny [jevlike](https://github.com/vinnylarouge/jevlike) scorers — and can serve as teachers or training back-ends; see [Decision providers](/design/providers/#jev-compatible-open-models). All of them evaluate with plain arithmetic in microseconds. **Conformance vectors** — inputs with expected outputs — ship with the specification, and every SDK must reproduce them, so one policy file behaves the same in every engine.
+The format supports decision trees, tree ensembles and small neural networks (MLP). Open Jev-compatible projects show the other end of the same idea (fine-tuned [Kev](https://github.com/jaredpalmer/kev) models, task-trained [NanoJev](https://github.com/TianyuCodings/NanoJev) and tiny [jevlike](https://github.com/vinnylarouge/jevlike) scorers) and can serve as teachers or training back-ends; see [Decision providers](/design/providers/#jev-compatible-open-models). All of them evaluate with plain arithmetic in microseconds. **Conformance vectors** (inputs with expected outputs) ship with the specification, and every SDK must reproduce them, so one policy file behaves the same in every engine.
 
 ## Versioning
 

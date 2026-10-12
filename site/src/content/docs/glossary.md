@@ -57,7 +57,7 @@ The game's original behavior, usually a finite-state machine (FSM). A2G never re
 
 ## Report
 
-The game's message about how a decision ended — executed, blocked or expired — with a few outcome values.
+The game's message about how a decision ended (executed, blocked or expired) with a few outcome values.
 
 ## Memory
 
@@ -109,15 +109,15 @@ The service decides while the local policy predicts alongside; agreement shows w
 
 ## Scope
 
-A named block of static context — a level, zone or chapter — sent once per request. Scopes form a chain from the world down; a decide request names the active one. See [Scopes](/specification/manifest/#scopes).
+A named block of static context (a level, zone or chapter) sent once per request. Scopes form a chain from the world down; a decide request names the active one. See [Scopes](/specification/manifest/#scopes).
 
 ## Profile
 
-Named static text about one character — name, role, personality — referenced by entities and sent once per request. See [Profiles](/specification/manifest/#profiles).
+Named static text about one character (name, role, personality) referenced by entities and sent once per request. See [Profiles](/specification/manifest/#profiles).
 
 ## Group
 
-An entity linked to a higher-level entity — a squad, faction or director — by `parent`. Children see the parent's decision; the parent sees its members. See [Groups](/specification/decide/#groups).
+An entity linked to a higher-level entity (a squad, faction or director) by `parent`. Children see the parent's decision; the parent sees its members. See [Groups](/specification/decide/#groups).
 
 ## Event
 

@@ -31,7 +31,7 @@ async function sections() {
 function clean(body: string, site: URL) {
 	return body
 		.replace(/^import .*$/gm, '')
-		.replace(/<Card title="([^"]+)"[^>]*>/g, '**$1** —')
+		.replace(/<Card title="([^"]+)"[^>]*>/g, '**$1**:')
 		.replace(/<\/?(CardGrid|Card|Steps|Architecture|MessageFlow)[^>]*>/g, '')
 		.replace(/\]\(\//g, `](${site.origin}/`)
 		.replace(/\n{3,}/g, '\n\n')
@@ -42,7 +42,7 @@ const HEADER = (site: URL) => `# Agent2Game (A2G)
 
 > An open protocol that lets existing games ask an AI model what their characters should do next, while the game stays authoritative: the game describes itself in a manifest, sends observations and legal actions, executes validated typed choices through its own code and falls back to its native AI on any failure. Protocol version 0.1 (draft).
 
-Pages marked "Proposed — not implemented yet" describe planned parts. The complete documentation in one file: ${new URL('/llms-full.txt', site).href}. Machine-readable JSON Schema of the manifest and all messages: ${new URL('/schema/0.1/a2g.schema.json', site).href}. Source: https://github.com/agent2game/a2g-protocol
+Pages marked "Proposed: not implemented yet" describe planned parts. The complete documentation in one file: ${new URL('/llms-full.txt', site).href}. Machine-readable JSON Schema of the manifest and all messages: ${new URL('/schema/0.1/a2g.schema.json', site).href}. Source: https://github.com/agent2game/a2g-protocol
 `;
 
 export async function llmsIndex(site: URL) {

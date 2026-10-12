@@ -1,13 +1,37 @@
 ---
 title: Integrate a game
-description: The steps to connect an existing game to A2G — manifest, adapter and hooks.
+description: The steps to connect an existing game to A2G, manifest, adapter and hooks.
 ---
 
 This guide uses the [Godot SDK](/implementations/godot-sdk/). The steps are the same for any engine.
 
+## 0. Find or write the client
+
+Check [Implementations](/implementations/godot-sdk/) for an SDK for your engine. If there is one, use it and continue with step 1.
+
+### No SDK for your engine
+
+Write a small client in your engine's language. It is the same for every game, so keep it separate from game code, one module that the adapter plugs into. It must follow these rules:
+
+| Area | Rule |
+| --- | --- |
+| Separation | Engine-specific but **game-agnostic**: no references to your game's classes. Everything game-specific lives in the adapter and the manifest |
+| Threads and frames | Never block a frame on the network. Requests are asynchronous; at most a few in flight |
+| Session | Load the manifest from a file, open [`/v1/session`](/specification/session/), keep the `session_token`, reopen on `401`/`409` |
+| Decide | Batch up to 16 entities that need a decision (timer, [event](/specification/manifest/#events) or changed values) into one [`/v1/decide`](/specification/decide/) |
+| Validation | Drop replies with an old `epoch`; accept an action only if it is in the `legal_actions` you sent; expire it after `ttl_ms` |
+| Fallback | On any error, timeout, non-`200`, `FALLBACK` or expired decision, run the game's **existing AI**. The client never invents an action |
+| Report | When a decision ends, send [`/v1/report`](/specification/report/) with its `decision_id`, status and a few numeric outcomes |
+| Telemetry | About once per second, in every mode, send [`/v1/telemetry`](/specification/telemetry/) with each entity's actual state |
+| Modes | Start in native mode; AI control is switched on explicitly and switching modes increments the epoch |
+| Security | No provider keys in the build; the session token on every request; no personal data in observations ([Security](/specification/security/)) |
+| Correctness | Validate your messages against the [JSON Schema](https://agent2game.org/schema/0.1/a2g.schema.json) in tests, and test with the service stopped: the game must play normally |
+
+The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `register_adapter`, `track`, `execute(entity, delta) -> bool`, `set_ai_enabled`, `notify(entity, event)`. Keeping the same names makes the manifest, adapter and documentation portable between engines.
+
 ## 1. Choose entities and actions
 
-Pick the kind of entity whose behavior you want the model to drive — enemies, NPCs, units. List the actions your game **already knows how to execute** for them, such as `chase`, `flee`, `idle`, `wander`. A2G does not add new abilities; it chooses between existing ones.
+Pick the kind of entity whose behavior you want the model to drive: enemies, NPCs, units. List the actions your game **already knows how to execute** for them, such as `chase`, `flee`, `idle`, `wander`. A2G does not add new abilities; it chooses between existing ones.
 
 ## 2. Write the manifest
 
@@ -74,7 +98,7 @@ When the game grows beyond a few enemies, add what it needs, one tool at a time:
 
 ## 7. Train and ship a local policy (proposed)
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 See [Local policy](/design/local-policy/).
 :::
 

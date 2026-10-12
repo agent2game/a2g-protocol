@@ -1,95 +1,138 @@
 ---
-// "Hand this to your coding agent" block for the home page: a ready prompt that points at /llms-full.txt.
-const full = new URL('/llms-full.txt', Astro.site).href;
+// "Hand it to your coding agent": one prompt that works whether or not an A2G SDK exists for the game's engine.
+const origin = Astro.site!;
+const url = (path: string) => new URL(path, origin).href;
+const prompt = `Read ${url('/llms-full.txt')}, the Agent2Game (A2G) protocol 0.1. Then integrate A2G into this game.
 
-const prompt = `Read ${full} — the complete Agent2Game (A2G) protocol documentation. Then help me integrate A2G into my game: inspect my project, propose a manifest (world, entity types, observation fields, actions), write the adapter (observe, legal_actions, execute) and hook my entities so the game's original AI stays the fallback. Ask before changing existing game logic.`;
+1. Identify the engine and language. If an A2G SDK exists for it (see Implementations), use it.
+2. If there is no SDK, write a small client in the game's language that follows the specification and the rules in ${url('/guides/integrate/#no-sdk-for-your-engine')}: keep it game-agnostic and separate from game code; never block a frame on the network; validate every decision (epoch, legal_actions, ttl_ms); fall back to the game's existing AI on any error, timeout or FALLBACK; send reports with decision_id and telemetry about once per second; validate messages in tests against ${url('/schema/0.1/a2g.schema.json')}.
+3. Propose a manifest from the game's real entities: what each can observe and the actions it already has. Prefer enums and fractions; never include personal data.
+4. Write the adapter (observe, legal_actions, execute) and hook the entities so the original AI stays the default and the fallback.
+5. Never put provider API keys in the game. Show me the plan and the manifest before changing existing game logic.`;
 ---
 
-<section class="agent not-content" aria-labelledby="agent-title">
+<section class="agent-prompt not-content" aria-labelledby="agent-title">
 	<div class="head">
-		<h2 id="agent-title">Don't want to read? Hand it to your agent.</h2>
-		<p>Paste this into Claude Code, Codex, Cursor or any coding agent.</p>
+		<div>
+			<h2 id="agent-title">Hand it to your coding agent</h2>
+			<p>Paste this into Claude Code, Codex or Cursor in your game's project. It uses an SDK when your engine has one and writes a client by the rules when it does not.</p>
+		</div>
+		<button type="button" class="copy" data-copy={prompt}>Copy prompt</button>
 	</div>
-	<div class="prompt">
-		<code>{prompt}</code>
-		<button type="button" data-copy={prompt} aria-label="Copy prompt">Copy</button>
+	<div class="prompt" data-open="false">
+		<pre>{prompt}</pre>
 	</div>
-	<p class="links">
-		For agents and tools: <a href="/llms.txt">llms.txt</a> (index) · <a href="/llms-full.txt">llms-full.txt</a> (all docs, one file)
-	</p>
+	<button type="button" class="more" aria-expanded="false">Show all</button>
 </section>
 
 <script>
-	for (const button of document.querySelectorAll<HTMLButtonElement>('.agent [data-copy]')) {
-		button.addEventListener('click', async () => {
+	for (const root of document.querySelectorAll<HTMLElement>('.agent-prompt')) {
+		const copy = root.querySelector<HTMLButtonElement>('.copy')!;
+		const box = root.querySelector<HTMLElement>('.prompt')!;
+		const more = root.querySelector<HTMLButtonElement>('.more')!;
+		copy.addEventListener('click', async () => {
 			try {
-				await navigator.clipboard.writeText(button.dataset.copy ?? '');
-				button.textContent = 'Copied';
+				await navigator.clipboard.writeText(copy.dataset.copy ?? '');
+				copy.textContent = 'Copied';
 			} catch {
-				// Clipboard blocked (permissions, insecure context): select the prompt so ⌘C / Ctrl+C works.
-				const code = button.previousElementSibling;
-				if (code) getSelection()?.selectAllChildren(code);
-				button.textContent = 'Press ⌘C';
+				// Clipboard blocked (permissions, insecure context): open and select the prompt so ⌘C / Ctrl+C works.
+				box.dataset.open = 'true';
+				more.setAttribute('aria-expanded', 'true');
+				getSelection()?.selectAllChildren(box.querySelector('pre')!);
+				copy.textContent = 'Press ⌘C';
 			}
-			setTimeout(() => (button.textContent = 'Copy'), 2000);
+			setTimeout(() => (copy.textContent = 'Copy prompt'), 2000);
+		});
+		more.addEventListener('click', () => {
+			const open = box.dataset.open !== 'true';
+			box.dataset.open = String(open);
+			more.setAttribute('aria-expanded', String(open));
+			more.textContent = open ? 'Show less' : 'Show all';
 		});
 	}
 </script>
 
 <style>
-	.agent {
-		margin: 0 0 2.5rem;
-		padding: 1.1rem 1.25rem;
-		border: 1px solid var(--sl-color-accent);
+	.agent-prompt {
+		margin: 1rem 0 3rem;
+		padding: 1.25rem;
 		border-radius: 0.75rem;
-		background: var(--sl-color-accent-low);
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+	.head {
+		display: flex;
+		gap: 1rem;
+		align-items: flex-start;
+		justify-content: space-between;
 	}
 	h2 {
 		margin: 0;
 		font-size: var(--sl-text-lg);
 		color: var(--sl-color-white);
 	}
-	.head p,
-	.links {
-		margin: 0.2rem 0 0;
+	.head p {
+		margin: 0.3rem 0 0;
+		max-width: 44rem;
 		font-size: var(--sl-text-sm);
 		color: var(--sl-color-gray-2);
 	}
-	.prompt {
-		display: flex;
-		gap: 0.75rem;
-		align-items: flex-start;
-		margin-top: 0.75rem;
-		padding: 0.75rem 0.85rem;
-		border: 1px solid var(--sl-color-gray-5);
-		border-radius: 0.5rem;
-		background: var(--sl-color-black);
-	}
-	code {
-		flex: 1;
-		font-size: var(--sl-text-xs);
-		line-height: 1.55;
-		white-space: normal;
-		color: var(--sl-color-white);
-		background: none;
-		padding: 0;
-	}
-	button {
-		flex-shrink: 0;
-		padding: 0.35rem 0.8rem;
-		border: 0;
-		border-radius: 0.4rem;
-		background: var(--sl-color-accent);
-		color: var(--sl-color-black);
+	.copy,
+	.more {
 		font: inherit;
-		font-size: var(--sl-text-sm);
-		font-weight: 600;
 		cursor: pointer;
 	}
-	.links {
-		margin-top: 0.6rem;
+	.copy {
+		flex-shrink: 0;
+		padding: 0.5rem 0.95rem;
+		border: 0;
+		border-radius: 0.45rem;
+		background: var(--a2g-ai);
+		color: #07150f;
+		font-size: var(--sl-text-sm);
+		font-weight: 600;
 	}
-	.links a {
-		color: var(--sl-color-accent-high);
+	.copy:focus-visible,
+	.more:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 2px;
+	}
+	.prompt {
+		position: relative;
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-black);
+		border: 1px solid var(--sl-color-gray-5);
+	}
+	pre {
+		margin: 0;
+		padding: 0.9rem 1rem;
+		max-height: 7.5rem;
+		overflow: hidden;
+		font-family: var(--sl-font-mono);
+		font-size: 0.75rem;
+		line-height: 1.6;
+		white-space: pre-wrap;
+		color: var(--sl-color-gray-1);
+		mask-image: linear-gradient(to bottom, #000 55%, transparent);
+	}
+	.prompt[data-open='true'] pre {
+		max-height: none;
+		mask-image: none;
+	}
+	.more {
+		margin-top: 0.5rem;
+		padding: 0;
+		border: 0;
+		background: none;
+		color: var(--sl-color-gray-2);
+		font-size: var(--sl-text-xs);
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+	}
+	@media (max-width: 40rem) {
+		.head {
+			flex-direction: column;
+		}
 	}
 </style>

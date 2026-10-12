@@ -45,11 +45,11 @@ The credential depends on the [deployment profile](/specification/security/#depl
 | `session_token` | Opaque token bound to this `client_id`. Send it as `Authorization: Bearer` on every later request. Omitted in the `local` profile |
 | `expires_in` | Seconds until the token expires; open a new session before then |
 
-A `400` means the version is unsupported or the manifest is invalid; the message names the problem. `401` means the credential is missing or invalid; `403` that the game or manifest hash is not registered with the service. Sending a new session replaces the stored manifest — including its scopes and profiles — for that client. Scopes and profiles can then be changed with [`POST /v1/context`](/specification/context/).
+A `400` means the version is unsupported or the manifest is invalid; the message names the problem. `401` means the credential is missing or invalid; `403` that the game or manifest hash is not registered with the service. Sending a new session replaces the stored manifest (including its scopes and profiles) for that client. Scopes and profiles can then be changed with [`POST /v1/context`](/specification/context/).
 
 ## Proposed: local policy fields
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
 :::
 

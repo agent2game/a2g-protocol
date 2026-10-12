@@ -33,8 +33,9 @@ export default defineConfig({
 			title: 'Agent2Game',
 			description: 'An open protocol for plugging AI decisions into existing games.',
 			// Fonts are self-hosted: no third-party requests from visitors' browsers.
-			customCss: ['@fontsource-variable/inter', '@fontsource/jetbrains-mono/400.css', '@fontsource/jetbrains-mono/500.css', './src/styles/custom.css'],
+			customCss: ['@fontsource-variable/inter', '@fontsource-variable/pixelify-sans', '@fontsource/jetbrains-mono/400.css', '@fontsource/jetbrains-mono/500.css', './src/styles/custom.css'],
 			lastUpdated: true,
+			components: { SiteTitle: './src/components/SiteTitle.astro', Hero: './src/components/Hero.astro' },
 			social: [{ icon: 'github', label: 'GitHub', href: 'https://github.com/agent2game/a2g-protocol' }],
 			editLink: { baseUrl: 'https://github.com/agent2game/a2g-protocol/edit/main/site/' },
 			head: [{ tag: 'script', attrs: { src: '/link-preview.js', defer: true } }],

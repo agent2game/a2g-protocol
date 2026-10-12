@@ -1,0 +1,141 @@
+---
+// Home-page hero: the pitch on the left, a playable protocol demo on the right.
+// Overrides Starlight's Hero; reads title, tagline and actions from the page frontmatter.
+import Arena from './Arena.astro';
+const { data, id } = Astro.locals.starlightRoute.entry;
+const lost = id === '404';
+const { title = data.title, tagline, actions = [] } = data.hero || {};
+---
+
+<section class:list={['hero', { lost }]}>
+	<div class="pitch">
+		<h1 id="_top">{title}</h1>
+		{tagline && <p class="tagline" set:html={tagline} />}
+		<div class="actions">
+			{
+				actions.map((action: { text: string; link: string; variant?: string }) => (
+					<a class:list={['action', action.variant === 'minimal' ? 'minimal' : 'primary']} href={action.link}>
+						{action.text}
+					</a>
+				))
+			}
+		</div>
+		{
+			!lost && (
+				<p class="agents">
+					Using a coding agent? Hand it <a href="/llms-full.txt">llms-full.txt</a> or the prompt below.
+				</p>
+			)
+		}
+	</div>
+	<Arena />
+</section>
+
+<script>
+	// A greeting for people who open the console: the spark mark beside a block-letter wordmark.
+	const spark = [
+		'.....#.....',
+		'.#...#...#.',
+		'....###....',
+		'....###....',
+		'..#######..',
+		'#####o#####',
+		'..#######..',
+		'....###....',
+		'....###....',
+		'.#...#...#.',
+		'.....#.....',
+	].map((row) => row.replace(/#/g, '██').replace(/o/g, '▒▒').replace(/\./g, '  '));
+	const word = [
+		'',
+		' █████  ██████  ███████ ███    ██ ████████ ██████   ██████   █████  ███    ███ ███████',
+		'██   ██ ██      ██      ████   ██    ██         ██ ██       ██   ██ ████  ████ ██',
+		'███████ ██  ███ █████   ██ ██  ██    ██     █████  ██   ███ ███████ ██ ████ ██ █████',
+		'██   ██ ██   ██ ██      ██  ██ ██    ██    ██      ██    ██ ██   ██ ██  ██  ██ ██',
+		'██   ██  ██████ ███████ ██   ████    ██    ███████  ██████  ██   ██ ██      ██ ███████',
+		'',
+		'An open protocol for AI decisions in games.',
+		'',
+		'The whole spec for your agent:  /llms-full.txt',
+		'Source:                         github.com/agent2game/a2g-protocol',
+		'On the arena, try:              ↑ ↑ ↓ ↓ ← → ← → B A',
+	];
+	const blank = ' '.repeat(spark[0].length);
+	const art = Array.from({ length: Math.max(spark.length, word.length) }, (_, i) => `${spark[i] ?? blank}    ${word[i] ?? ''}`).join('\n');
+	console.log(`%c${art}`, 'color:#4fd3a0;font-family:ui-monospace,Menlo,monospace;font-size:11px;line-height:1.15');
+</script>
+
+<style>
+	.lost h1 {
+		font-family: var(--a2g-pixel);
+		font-weight: 600;
+		letter-spacing: 0;
+	}
+	.hero {
+		display: grid;
+		grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+		gap: clamp(1.5rem, 4vw, 3.5rem);
+		align-items: center;
+		padding-block: clamp(1.5rem, 5vw, 4rem) clamp(1rem, 3vw, 2rem);
+	}
+	h1 {
+		margin: 0;
+		font-size: clamp(2.1rem, 4.4vw, 3.4rem);
+		line-height: 1.06;
+		letter-spacing: -0.035em;
+		font-weight: 700;
+		color: var(--sl-color-white);
+		text-wrap: balance;
+	}
+	.tagline {
+		margin: 1.1rem 0 0;
+		max-width: 34rem;
+		font-size: var(--sl-text-lg);
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-top: 1.6rem;
+	}
+	.action {
+		padding: 0.7rem 1.2rem;
+		border-radius: 0.5rem;
+		font-weight: 600;
+		text-decoration: none;
+		line-height: 1;
+	}
+	.primary {
+		background: var(--sl-color-white);
+		color: var(--sl-color-black);
+	}
+	.primary:hover {
+		background: var(--sl-color-gray-1);
+	}
+	.minimal {
+		color: var(--sl-color-white);
+		box-shadow: inset 0 0 0 1px var(--sl-color-gray-5);
+	}
+	.minimal:hover {
+		box-shadow: inset 0 0 0 1px var(--sl-color-gray-3);
+	}
+	.action:focus-visible {
+		outline: 2px solid var(--sl-color-accent);
+		outline-offset: 3px;
+	}
+	.agents {
+		margin: 1.2rem 0 0;
+		font-size: var(--sl-text-sm);
+		color: var(--sl-color-gray-3);
+	}
+	.agents a {
+		color: var(--sl-color-gray-2);
+	}
+	@media (max-width: 56rem) {
+		.hero {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+</style>

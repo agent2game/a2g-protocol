@@ -1,15 +1,15 @@
 ---
 title: Policy format
-description: The portable file format for local policies — inputs, model kinds, evaluation rules and conformance vectors that every SDK must pass.
+description: The portable file format for local policies, inputs, model kinds, evaluation rules and conformance vectors that every SDK must pass.
 sidebar:
   order: 10
 ---
 
-:::caution[Proposed — not implemented yet]
+:::caution[Proposed: not implemented yet]
 Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
 :::
 
-A **policy file** (`a2g_policy.json`) contains one trained model per entity type. Any SDK can evaluate it with plain arithmetic — no machine-learning runtime is needed. Given an entity's observation, the world state and the legal actions, it returns the same thing a [decision](/specification/decide/) does: an action, probabilities and a confidence.
+A **policy file** (`a2g_policy.json`) contains one trained model per entity type. Any SDK can evaluate it with plain arithmetic, no machine-learning runtime is needed. Given an entity's observation, the world state and the legal actions, it returns the same thing a [decision](/specification/decide/) does: an action, probabilities and a confidence.
 
 ## File structure
 
@@ -66,7 +66,7 @@ Inputs are appended in order to a vector `x` of 32-bit floats:
 
 Each model produces a vector over `actions`.
 
-**`tree`** — one decision tree.
+**`tree`**: one decision tree.
 
 ```json
 { "kind": "tree",
@@ -79,11 +79,11 @@ Each model produces a vector over `actions`.
 
 At an internal node go `left` if `x[feature] <= threshold`, otherwise `right`. A leaf's `value` is a probability vector.
 
-**`forest`** — `{ "kind": "forest", "trees": [root, …] }`. The output is the element-wise mean of the trees' leaf values.
+**`forest`**: `{ "kind": "forest", "trees": [root, …] }`. The output is the element-wise mean of the trees' leaf values.
 
-**`gbdt`** — gradient-boosted trees: `{ "kind": "gbdt", "base": [...], "learning_rate": 0.1, "trees": [root, …] }`. Leaf values are logit increments; `logits = base + learning_rate × Σ leaf values`, then softmax.
+**`gbdt`**: gradient-boosted trees: `{ "kind": "gbdt", "base": [...], "learning_rate": 0.1, "trees": [root, …] }`. Leaf values are logit increments; `logits = base + learning_rate × Σ leaf values`, then softmax.
 
-**`mlp`** — a small neural network:
+**`mlp`**: a small neural network:
 
 ```json
 { "kind": "mlp",
@@ -98,7 +98,7 @@ At an internal node go `left` if `x[feature] <= threshold`, otherwise `right`. A
 
 1. Compute probabilities `p` over `actions` with the model.
 2. **Mask:** set `p[a] = 0` for every action not in the entity's current `legal_actions`.
-3. If the sum is 0, there is no answer — fall back. Otherwise renormalize so it sums to 1.
+3. If the sum is 0, there is no answer, fall back. Otherwise renormalize so it sums to 1.
 4. `action` = the highest probability; ties go to the earlier action in `actions`.
 5. `confidence = (max(p) − 1/n) / (1 − 1/n)`, where `n` is the number of legal actions; `confidence = 1` when `n = 1`. This matches the confidence of typed-decision providers.
 

@@ -19,7 +19,7 @@ if A2G.execute(self, delta):  # true: A2G controls this entity this frame
 # otherwise run the original state machine
 ```
 
-**[Adapter](/glossary/#adapter) and manifest** — written by the game developer. The manifest declares the world, entity types, observation fields and actions. The adapter implements three functions per entity type:
+**[Adapter](/glossary/#adapter) and manifest**: written by the game developer. The manifest declares the world, entity types, observation fields and actions. The adapter implements three functions per entity type:
 
 | Function | Returns |
 | --- | --- |
@@ -27,9 +27,9 @@ if A2G.execute(self, delta):  # true: A2G controls this entity this frame
 | `legal_actions(entity)` | Actions the game allows right now (rules, cooldowns, visibility) |
 | `execute(entity, action)` | Performs the action through existing game code; may refuse |
 
-**[Engine SDK](/glossary/#sdk)** — provided by A2G, one per engine. It loads the manifest, opens the [session](/specification/session/), decides which entities need a decision, batches [decide](/specification/decide/) requests without blocking frames, tracks [epochs](/glossary/#epoch) and [TTLs](/glossary/#ttl), and sends [reports](/specification/report/) and [telemetry](/specification/telemetry/). See [Godot SDK](/implementations/godot-sdk/).
+**[Engine SDK](/glossary/#sdk)**: provided by A2G, one per engine. It loads the manifest, opens the [session](/specification/session/), decides which entities need a decision, batches [decide](/specification/decide/) requests without blocking frames, tracks [epochs](/glossary/#epoch) and [TTLs](/glossary/#ttl), and sends [reports](/specification/report/) and [telemetry](/specification/telemetry/). See [Godot SDK](/implementations/godot-sdk/).
 
-**[Local policy](/design/local-policy/)** *(proposed)* — a small model file trained on the service's decisions. The SDK evaluates it in-process, so a game can make decisions without the network and ship without the service. See [Policy format](/specification/policy-format/).
+**[Local policy](/design/local-policy/)** *(proposed)*: a small model file trained on the service's decisions. The SDK evaluates it in-process, so a game can make decisions without the network and ship without the service. See [Policy format](/specification/policy-format/).
 
 ## Decision service
 
