@@ -33,7 +33,7 @@ Everything on this page runs today, except the `client` security profile in [Sec
 | File | Kind | Purpose |
 | --- | --- | --- |
 | `a2g_manifest.json` | new | World, scopes, profile, entity types, events, cache rules |
-| `addons/a2g/` | new, SDK | The [Godot SDK](/implementations/godot-sdk/) `v0.1.0`, vendored unchanged; autoload `A2G`, no Lango-specific code. `scripts/update-a2g-sdk.sh <tag>` updates it |
+| `addons/a2g/` | new, SDK | The [Godot SDK](/implementations/godot-sdk/) `v0.1.1`, vendored unchanged; autoload `A2G`, no Lango-specific code. `scripts/update-a2g-sdk.sh <tag>` updates it |
 | `A2G/LangoA2G.gd` | new, adapter | All Lango-specific glue, autoload `LangoA2G` (about 180 lines) |
 | `Enemies/Enemy.gd`, `Bee.gd`, `Boss.gd` | changed | `LangoA2G.track(self)` in `_ready`, `A2G.execute(self, delta)` before the state machine |
 | `Enemies/Boss.gd` | changed | One line: spawned bees join the boss's group |
