@@ -115,7 +115,7 @@
       "type": "object",
       "properties": {
         "text": { "type": "string", "maxLength": 1000 },
-        "type": { "$ref": "#/$defs/Name" }
+        "type": { "$ref": "#/$defs/Name", "description": "An entity type declared in the manifest (checked by services; the schema cannot express it)." }
       },
       "required": ["text"],
       "additionalProperties": false

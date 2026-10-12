@@ -143,9 +143,11 @@ The service builds one model request per batch. Static content comes first so it
 | 4 | `world` state and `scope_state` | once per request |
 | 5 | Situation context: `population`, `observed_entities` | once per request |
 | 6 | Per entity: type, profile name, observation, memory, `nearby`, `parent`, `members`, trigger | per entity |
-| 7 | One typed question per entity offering only its `legal_actions` | per entity |
+| 7 | One typed question per entity offering only its `legal_actions`. The question also carries the entity type's `description` | per entity |
 
 Parts 1–5 are shared and paid once per batch; parts 6–7 are the entity-specific input the [token budget](/specification/manifest/#token-budget) applies to.
+
+The type `description` is placed in the question, not only in the data, because models follow behavior rules there much more reliably: in a measured comparison on Lango, a group of wounded bees attacked together only when the description was in the question. Manifest texts are written by the game studio (and registered in hosted profiles), so they are trusted; every value sent at runtime stays data ([prompt injection](/specification/security/#prompt-injection)).
 
 The situation context is computed by the service from the **same session's** [telemetry](/specification/telemetry/) and never from other sessions ([security](/specification/security/#session-scoped-context)), so games do not have to:
 

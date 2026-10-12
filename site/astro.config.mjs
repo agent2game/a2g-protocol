@@ -42,7 +42,7 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Get started',
-					items: ['docs/introduction', 'docs/architecture', 'guides/integrate'],
+					items: ['docs/introduction', 'docs/architecture', 'guides/integrate', 'guides/behavior'],
 				},
 				{
 					label: 'Specification',

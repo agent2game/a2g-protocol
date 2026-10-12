@@ -43,8 +43,8 @@ Failures always step down: `service` → `local` → `native`. No frame waits fo
 
 1. **Collect.** Play the game in `service` or `cascade` mode. The service writes every decision and its outcome to a persistent log, tagged with the [manifest hash](/glossary/#manifest-hash).
 2. **Widen coverage.** One developer plays in one style. Headless scenarios and bots running in `cascade` fill in situations a human rarely reaches. The training report shows where data is thin.
-3. **Train.** One action (a console button or a command) produces a new policy version with metrics: agreement with the teacher per entity type and per situation, model size, and readable rules for tree models.
-4. **Verify.** Run in `shadow`: the model still decides, and the console shows how often the local policy would have chosen the same action. In `cascade`, watch the share of decisions that still need the service fall.
+3. **Train.** One action (an Agent2Game Console button or a command) produces a new policy version with metrics: agreement with the teacher per entity type and per situation, model size, and readable rules for tree models.
+4. **Verify.** Run in `shadow`: the model still decides, and the Agent2Game Console shows how often the local policy would have chosen the same action. In `cascade`, watch the share of decisions that still need the service fall.
 5. **Ship.** Commit `a2g_policy.json` with the game, set the mode to `local`, and disable the SDK's network part for the release build.
 6. **Repeat** when the game changes. A changed manifest produces a new hash and the old policy stops loading; a balance change needs a new data epoch.
 

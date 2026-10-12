@@ -19,8 +19,9 @@ The service is not yet available in a public repository. Publishing it is on the
 - Computes session-scoped situation context: `population`, `nearby`, `observed_entities`, the `parent` decision and `members` of [groups](/specification/decide/#groups).
 - Enforces [token budgets](/specification/manifest/#token-budget) (~4 characters per token) and serves the [decision cache](/specification/manifest/#decision-cache) (in memory, game-wide for trusted `local` sessions).
 - Issues a `decision_id` with every AI decision and applies a [report](/specification/report/) only once, for the session and entity it was issued to; stores the last 8 as [memory](/glossary/#memory).
-- Serves a browser console at `/`: clients, context (scopes, profiles, entity types), entities with groups, decisions, cache hits, fallback codes, memory, costs and logs.
-- Holds the provider key; it is never sent to the game or the console.
+- Serves the **Agent2Game Console** at `/`: clients, context (scopes, profiles, entity types), entities with groups, decisions, cache hits, fallback codes, memory, costs and logs, with a Pretty/JSON view per card, a manifest editor (download, or apply as a console-side override for testing) and deletion of old sessions.
+- Stores session summaries, every priced provider call and manifest overrides in a local SQLite file, so spend survives restarts. Telemetry, memory and logs stay in memory.
+- Holds the provider key; it is never sent to the game or the Agent2Game Console.
 
 ## Run
 
@@ -29,7 +30,7 @@ echo "OPENAI_API_KEY=..." > .env
 python3 decision_service.py
 ```
 
-The service listens on `http://127.0.0.1:8787`. Open `/` for the console and `/health` for status.
+The service listens on `http://127.0.0.1:8787`. Open `/` for the Agent2Game Console and `/health` for status.
 
 ## Implementation status
 
@@ -42,7 +43,7 @@ The specification leads; the reference implementations follow. Status of protoco
 | [Events](/specification/manifest/#events) (`events`, `trigger`, `refresh_ms`) | yes | yes: adapter `trigger()`; `refresh_ms` as the default interval |
 | [Field types](/specification/manifest/#field-types) `vector2`, `vector3`, `entity_ref`, lists, numeric enums | yes | yes (passed through from the adapter) |
 | [Token budget](/specification/manifest/#token-budget) | yes (~4 chars/token) | n/a |
-| [Decision cache](/specification/manifest/#decision-cache) | yes: in memory, game-wide for `local` sessions | n/a (transparent) |
+| [Decision cache](/specification/manifest/#decision-cache) | yes: in memory, game-wide for `local` sessions; decisions with confidence below 0.5 are not cached; equivalent entities in one batch are asked once | n/a (transparent) |
 | [Fallback codes](/specification/decide/#fallback-codes) | yes | yes: kept per entity for debugging |
 | [Manifest hash](/specification/manifest/#manifest-hash) | yes | yes: stored from the session response |
 | [`decision_id`](/specification/security/#decision-integrity) in decisions and reports | yes | yes |
@@ -63,7 +64,7 @@ See [Local policy](/design/local-policy/).
 - **Persistent decision log** per game and manifest hash (JSONL): context, legal actions, full probabilities, outcome, local prediction. Today all history is in memory and lost on restart.
 - **Training** of local policies per entity type: decision trees first, then ensembles and small neural networks. Soft labels from the teacher's probabilities; optional outcome weighting.
 - **Training report:** agreement with the teacher per type and per situation, coverage map, model size, readable rules for trees.
-- **Console Policy tab:** data per manifest version and data epoch, Train button, policy versions with metrics, shadow agreement, share of service calls in cascade.
+- **Agent2Game Console Policy tab:** data per manifest version and data epoch, Train button, policy versions with metrics, shadow agreement, share of service calls in cascade.
 - **Local routes:** `POST /v1/policy/train` and `GET /v1/policy`, part of the reference service, not of the protocol.
 
 ## Limits

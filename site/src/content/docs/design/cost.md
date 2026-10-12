@@ -94,4 +94,4 @@ Cost must have a ceiling the game controls. Proposed for 0.2:
 
 ## What the reference service measures today
 
-The 0.1 service reads `usage` from each provider reply, converts it to dollars with a built-in price table and shows the cost per batch and per client in the console. Regional and long-context premiums are not applied, so treat the numbers as estimates.
+The 0.1 service reads `usage` from each provider reply, converts it to dollars with a built-in price table and records each priced call in a local SQLite file and shows the cost per client and the all-time total in the Agent2Game Console. Regional and long-context premiums are not applied, so treat the numbers as estimates.

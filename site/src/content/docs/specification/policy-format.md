@@ -6,7 +6,7 @@ sidebar:
 ---
 
 :::caution[Proposed: not implemented yet]
-Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
+Part of the planned [local policy](/design/local-policy/).
 :::
 
 A **policy file** (`a2g_policy.json`) contains one trained model per entity type. Any SDK can evaluate it with plain arithmetic, no machine-learning runtime is needed. Given an entity's observation, the world state and the legal actions, it returns the same thing a [decision](/specification/decide/) does: an action, probabilities and a confidence.

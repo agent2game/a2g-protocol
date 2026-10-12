@@ -88,7 +88,7 @@ func _physics_process(delta):
 
 1. Start the [decision service](/implementations/service/).
 2. Run the game and switch AI mode on (`A2G.set_ai_enabled(true)` or the `--a2g-ai` flag).
-3. Open the service console at `http://127.0.0.1:8787/` and check that decisions are `AI`, actions match executed states and reports arrive.
+3. Open the Agent2Game Console at `http://127.0.0.1:8787/` and check that decisions are `AI`, actions match executed states and reports arrive.
 
 Switch AI mode off to return to the original behavior at any time.
 
@@ -103,6 +103,6 @@ See [Local policy](/design/local-policy/).
 :::
 
 1. Keep playing in `cascade` mode; run automated scenarios to cover rare situations.
-2. Train a policy from the service console. Check agreement with the model and the coverage report.
+2. Train a policy from the Agent2Game Console. Check agreement with the model and the coverage report.
 3. Run in `shadow` mode to compare the policy with the model live.
 4. Commit `a2g_policy.json`, set the mode to `local` and disable the SDK's network part in the release build.

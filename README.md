@@ -16,7 +16,14 @@ A game describes itself once in a **manifest** (world, entity types, what each e
 | [`site/`](site) | The documentation site and **normative specification** ([`site/src/content/docs/specification/`](site/src/content/docs/specification)) |
 | [`schema/`](schema) | JSON Schema for the manifest and every message: [`schema/0.1/a2g.schema.json`](schema/0.1/a2g.schema.json), with valid and invalid examples |
 
-SDKs for game engines, the reference decision service and example integrations live in separate repositories.
+SDKs for game engines, the reference decision service and example integrations live in separate repositories:
+
+| Repository | Contents |
+| --- | --- |
+| [a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot) | Godot 4 SDK (addon), demo, tests |
+| [a2g-example-lango-godot](https://github.com/agent2game/a2g-example-lango-godot) | Lango, a Godot 4 RPG with AI-driven enemies |
+
+Naming: SDKs are `a2g-sdk-<engine>`, examples `a2g-example-<game>-<engine>`.
 
 ## Using the schema
 

@@ -205,6 +205,8 @@ The service identifies a manifest by the SHA-256 of its canonical JSON (keys sor
 
 ## Writing a good manifest
 
+See [Design behavior with the manifest](/guides/behavior/) for measured findings and detailed recommendations on descriptions, fields, rules, events and cache keys. In short:
+
 - Describe units and scales in `world` (fractions, pixels, seconds).
 - Put level- and zone-specific rules in scopes, character personality in profiles, and type-wide behavior in `description`.
 - The `description` is the main lever on behavior: describe when the type should be cautious as well as aggressive, and the signals it should weigh (health, allies nearby, how many of its kind remain).

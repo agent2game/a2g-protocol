@@ -3,8 +3,8 @@ title: Agent2Game Protocol
 description: An open protocol for plugging AI decisions into existing games.
 template: splash
 hero:
-  title: Give your game's characters a model to ask.
-  tagline: For game developers. A2G is an open protocol that adds AI decisions on top of the AI you already wrote. A model picks between the actions your characters can take, your code runs them, and your own AI takes over whenever the model can't help.
+  title: Same characters. Smarter choices.
+  tagline: Game AI has always been written by people. A2G lets it ask a model which move to make next. Your code still runs the game.
   actions:
     - text: Get started
       link: /docs/introduction/
@@ -17,6 +17,16 @@ import { LinkCard, CardGrid, Steps } from '@astrojs/starlight/components';
 import Architecture from '../../components/Architecture.astro';
 import AgentPrompt from '../../components/AgentPrompt.astro';
 import Principles from '../../components/Principles.astro';
+
+## AI has always been part of games
+
+Every enemy that ever chased, hid or flanked a player ran on decisions a person designed. Each generation of game AI kept that person in charge and gave characters a better way to choose:
+
+- **1980:** Pac-Man's four ghosts each follow their own targeting rule, so one chases and another cuts you off.
+- **1998 to 2005:** squads that take cover and flank, behavior trees in Halo 2, goal planners in F.E.A.R.
+- **Now:** a model weighs the whole situation and picks one of the moves designers built, inside the rules the game enforces.
+
+A2G is that next step, made open and engine-neutral. It does not generate art, voices or dialogue, and it does not replace the people who make games. Designers still decide what a character can do, programmers still decide what happens, and the original AI is still there as the [native AI](/glossary/#native-ai) that takes over on any failure.
 
 <AgentPrompt />
 

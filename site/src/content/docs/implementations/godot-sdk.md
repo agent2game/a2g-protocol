@@ -5,11 +5,15 @@ sidebar:
   order: 1
 ---
 
-The Godot SDK is a single GDScript file, `A2GClient.gd`, registered as the autoload `A2G`. It implements the client side of the protocol and contains no game-specific code.
+The Godot SDK is a Godot 4 addon, `addons/a2g/`, that registers the autoload `A2G`. It implements the client side of the protocol and contains no game-specific code.
 
-:::caution[Not published yet]
-The SDK currently lives inside the [example game](/examples/lango/) as `A2G/A2GClient.gd` and is not yet released as a separate Godot addon. Publishing it is on the [roadmap](/roadmap/).
-:::
+**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.1.0` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
+
+## Install
+
+1. Download `addons/a2g/` from a [release](https://github.com/agent2game/a2g-sdk-godot/releases) (the release archive contains only the addon) and copy it into your project.
+2. Enable **Project → Project Settings → Plugins → A2G**. This adds the `A2G` autoload and the `a2g/*` settings below.
+3. Put your [manifest](/specification/manifest/) at `res://a2g_manifest.json`, write an adapter and hook your entities ([guide](/guides/integrate/)).
 
 ## What it does
 
@@ -57,7 +61,17 @@ A2G.set_ai_enabled(true)            # increments the epoch and clears decisions
 
 ## Configuration
 
-Constants at the top of `A2GClient.gd`: `BASE_URL` (default `http://127.0.0.1:8787`), `MANIFEST_PATH`, `MAX_BATCH`, `MAX_INFLIGHT`, `BATCH_INTERVAL`, `DEFAULT_INTERVAL_MS`, `MIN_INTERVAL_MS`.
+Project Settings under `a2g/`, read at startup. Defaults apply when a setting is absent.
+
+| Setting | Default | Meaning |
+| --- | --- | --- |
+| `a2g/service/url` | `http://127.0.0.1:8787` | Decision service base URL |
+| `a2g/manifest_path` | `res://a2g_manifest.json` | The manifest |
+| `a2g/decisions/max_batch` | `16` | Entities per decide request, capped at the protocol maximum of 16 |
+| `a2g/decisions/max_inflight` | `2` | Decide requests in flight at once |
+| `a2g/decisions/batch_interval` | `0.25` | Seconds between batch checks |
+| `a2g/decisions/default_interval_ms` | `3000` | Refresh interval when neither the adapter nor the manifest sets one |
+| `a2g/decisions/min_interval_ms` | `500` | Minimum time between two requests for one entity |
 
 ## Implementation status
 

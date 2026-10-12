@@ -133,7 +133,8 @@ The situation context the service adds to model input (`nearby`, `members`, `pop
 
 Everything a game sends (`world`, scope and profile texts, descriptions, string fields) becomes model input. Treat it as data:
 
-- A service MUST place game-provided values in the input as structured data, separate from its own instructions, and tell the model to treat them as data.
+- A service MUST place values sent at runtime (observations, string fields, world and scope state, reports) in the input as structured data, separate from its own instructions, and tell the model to treat them as data.
+- Manifest texts written by the studio (type descriptions, and scope, profile and event texts) are trusted configuration. A service MAY place a type's `description` in the question (the reference service does, because models follow it more reliably there). In the `client` profile only registered manifests and registered context are accepted, so a player cannot inject instructions this way.
 - A service SHOULD remove control characters and enforce the length limits of the [manifest](/specification/manifest/) and string fields.
 - Games SHOULD prefer enums to strings, and SHOULD NOT pass player-written text (names, chat, signs) to the model unless the decision needs it.
 - Because answers are typed choices among `legal_actions`, the worst outcome of a successful injection is a different legal action in the attacker's own session, never code execution, data exfiltration or another player's game.

@@ -46,7 +46,7 @@ Memory for an entity is dropped when it disappears from [telemetry](/specificati
 ## Proposed: training fields
 
 :::caution[Proposed: not implemented yet]
-Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
+Part of the planned [local policy](/design/local-policy/).
 :::
 
 Reports become training examples for the [local policy](/design/local-policy/). Additional optional fields:

@@ -11,7 +11,7 @@ description: What comes next for A2G, and open design questions for complex game
 
 1. **Hosted security profiles.** `server` and `client` profiles with session tokens, join tokens, registered manifests and rate limits in the reference service and Godot SDK.
 1. **Local policy.** Persistent decision log, training, policy format with conformance vectors, `local` / `cascade` / `shadow` modes in the Godot SDK, release builds without the service. See [Local policy](/design/local-policy/).
-1. **Publish the code.** Release the Godot SDK as an addon and the reference service as a public repository.
+1. **Publish the reference service** as a public repository, and list the [Godot SDK](https://github.com/agent2game/a2g-sdk-godot) in the Godot Asset Store. The SDK and the [Lango example](https://github.com/agent2game/a2g-example-lango-godot) are already public.
 2. **Measure against native AI.** Replayable scenarios comparing chosen vs. executed actions, outcomes, latency, fallback rate and cost. Reports and telemetry already collect the data.
 3. **Second game.** Integrate another existing game and count the manual edits to the adapter and manifest.
 4. **More engines.** SDKs for Unity and Unreal, each with a policy evaluator passing the conformance vectors.

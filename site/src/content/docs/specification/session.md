@@ -50,7 +50,7 @@ A `400` means the version is unsupported or the manifest is invalid; the message
 ## Proposed: local policy fields
 
 :::caution[Proposed: not implemented yet]
-Part of the planned [local policy](/design/local-policy/). The protocol version stays 0.1.
+Part of the planned [local policy](/design/local-policy/).
 :::
 
 ```json
