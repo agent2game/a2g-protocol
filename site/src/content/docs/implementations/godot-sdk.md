@@ -7,7 +7,7 @@ sidebar:
 
 The Godot SDK is a Godot 4 addon, `addons/a2g/`, that registers the autoload `A2G`. It implements the client side of the protocol and contains no game-specific code.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.2.1` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
+**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.2.2` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
 
 ## Install
 

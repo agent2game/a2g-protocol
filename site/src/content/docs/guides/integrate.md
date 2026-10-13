@@ -23,7 +23,7 @@ Write a small client in your engine's language. It is the same for every game, s
 | Decide | Batch up to 16 entities that need a decision (timer, [event](/specification/manifest/#events) or changed values) into one [`/v1/decide`](/specification/decide/) |
 | Validation | Drop replies with an old `epoch`; accept an action only if it is in the `legal_actions` you sent; expire it after `ttl_ms` |
 | Fallback | On any error, timeout, non-`200`, `FALLBACK` or expired decision, run the game's **existing AI**. The client never invents an action |
-| Report | When a decision ends, send [`/v1/report`](/specification/report/) with its `decision_id`, status and a few numeric outcomes |
+| Report | When a decision ends, send [`/v1/report`](/specification/report/) with its `decision_id`, status and a few numeric outcomes. For an entity that stands for many (a customer base, a crowd) whose probabilities the game applies as shares, report the most likely action, or the one applied to most of them |
 | Telemetry | In every mode, send [`/v1/telemetry`](/specification/telemetry/) with each entity's actual state: about once per second in real-time games, after every turn in turn-based games |
 | Modes | Start in native mode; AI control is switched on explicitly and switching modes increments the epoch |
 | Security | No provider keys in the build; the session token on every request; no personal data in observations ([Security](/specification/security/)) |
