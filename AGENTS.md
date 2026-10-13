@@ -23,6 +23,7 @@ Keep this file in English. Reply to people in their own language.
 
 - **Specification, schema and examples change together.** Any change to a message or the manifest updates the spec page, `schema/<version>/a2g.schema.json`, and at least one example (and an invalid example for a new constraint) in the same change.
 - **The version stays `0.1` until the owner decides to release.** Add features as optional fields; do not bump the version or create a `0.2` folder on your own.
+- **Site version** (`site/package.json`) is `<protocol>.<n>` (`0.1.0`, `0.1.1`, ...): increase `n` with every deployed site change; it restarts at `<new protocol>.0` when the owner bumps the protocol. Everything stays below `1.0` until the owner declares the big release.
 - **Mark what is not implemented.** The spec leads the reference implementations. Keep the "Implementation status" table on `implementations/service.md` honest, and mark proposals with the `:::caution[Proposed: not implemented yet]` aside.
 - **Be game-agnostic.** The protocol must fit 2D and 3D games and any kind of entity. Game-specific content belongs only in examples.
 - **Security is normative.** Changes that touch authentication, sessions, the cache, context or telemetry must keep `specification/security.md` consistent.
