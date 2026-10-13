@@ -1,0 +1,58 @@
+---
+// Home page FAQ: the barriers developers raise first, as native <details> (no script, CSP-safe).
+// The full, topic-grouped version lives in src/content/docs/faq.md; keep both answers consistent.
+const items = [
+	{
+		q: 'My game has no internet connection. Why would I need this?',
+		a: 'Use the model while you build, not while players play. During development the model decides and every decision is logged; from that log A2G trains a small <a href="/glossary/#local-policy">local policy</a> that ships inside the game and runs offline, with no service, no keys and no per-decision cost. <em>(Proposed, not implemented yet.)</em> Today, losing the network only means the game runs its original AI. More: <a href="/design/local-policy/">Local policy</a>.',
+	},
+	{
+		q: 'Will network latency make my game lag?',
+		a: 'No frame ever waits for a model. Requests are asynchronous; an entity without a fresh decision simply keeps running its <a href="/glossary/#native-ai">native AI</a> until one arrives. Decisions are for intent ("flank", "retreat"), made every few seconds, while aiming, steering and animation stay frame-level native code. More: <a href="/specification/fallback/">Modes and fallback</a>.',
+	},
+	{
+		q: 'What does it cost, and who pays?',
+		a: 'Typed-decision models charge for input only. One fight with six enemies is about $0.10 to $0.24 per hour of play; 40 hours of playtesting is a few dollars. Cost scales with the number of decisions, not the size of the world, and events, groups, the cache and a shipped local policy cut it further, down to zero at runtime. Players never hold a key. More: <a href="/design/cost/">Cost</a>.',
+	},
+	{
+		q: 'What if the model picks something stupid or breaks the rules?',
+		a: 'It cannot break the rules. The model only picks one of the <a href="/glossary/#legal-actions">actions the game offered right now</a>; the game validates the choice and executes it through its own code. An invalid, late or refused answer is dropped and native AI takes over. Every decision and its outcome is logged, so you can trace what a character did and why it fell back.',
+	},
+	{
+		q: 'We balanced our AI by hand. Will a model make it unpredictable?',
+		a: 'You decide how much it decides. Drive only the entities and moments that benefit from judgment (a boss, a squad, a director) and keep the rest native. Designers write the actions, their descriptions and character profiles, so the model plays inside the design. AI control is opt-in, and native stays the default.',
+	},
+	{
+		q: 'Is this generative AI? Does it replace designers, writers or artists?',
+		a: 'No. A2G generates no art, voices, music or dialogue. It picks one move from a list people built, the way behavior trees and planners did before it. Designers still decide what a character can do and programmers still decide what happens. The goal is better behavior from the content you already made.',
+	},
+	{
+		q: 'How much work is an integration? Do I rewrite my AI?',
+		a: 'No rewrite. You keep your state machine or behavior tree as the fallback and add a <a href="/glossary/#manifest">manifest</a> plus a thin adapter: what an entity sees, which actions are legal now, and how to run each one. In the Lango example that is one adapter file and two calls in each enemy script. More: <a href="/guides/integrate/">Integrate a game</a>.',
+	},
+	{
+		q: 'My engine is not Godot (Unity, Unreal or something else).',
+		a: 'The protocol is plain JSON over HTTP, engine- and language-neutral, for 2D and 3D. There are SDKs for Godot and for JS/TS (browser and Node, including game servers); Unity and Unreal SDKs are on the roadmap, and you can talk to the service without an SDK. More: <a href="/implementations/js-sdk/">JS/TS SDK</a>.',
+	},
+	{
+		q: 'Does player data go to an AI provider?',
+		a: 'Only what your manifest declares and your adapter sends: game state such as positions, health and nearby objects. No accounts, chat or personal data are needed. The provider key stays in the decision service, never in the build, and you can run an open model on your own hardware instead. More: <a href="/specification/security/">Security</a>.',
+	},
+	{
+		q: 'Am I locked into one AI vendor?',
+		a: 'No. The protocol names no model. The reference service supports OpenAI Decisions and TypeSafe Jev today; open Jev-compatible models such as Kev can run locally. Switching providers is service configuration, not game code. More: <a href="/design/providers/">Decision providers</a>.',
+	},
+];
+---
+
+<div class="faq">
+	{
+		items.map((item) => (
+			<details>
+				<summary>{item.q}</summary>
+				<p set:html={item.a} />
+			</details>
+		))
+	}
+</div>
+<p class="faq-more"><a href="/faq/">All questions, grouped by topic →</a></p>

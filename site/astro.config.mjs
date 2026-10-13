@@ -66,6 +66,7 @@ export default defineConfig({
 					label: 'Examples',
 					items: [{ autogenerate: { directory: 'examples' } }],
 				},
+				{ label: 'FAQ', slug: 'faq' },
 				{ label: 'Glossary', slug: 'glossary' },
 				{ label: 'Roadmap', slug: 'roadmap' },
 				{ label: 'About', slug: 'about' },

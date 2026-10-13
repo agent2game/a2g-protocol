@@ -11,7 +11,7 @@ Keep this file in English. Reply to people in their own language.
 | `site/` | Astro Starlight site. Pages are Markdown/MDX in `site/src/content/docs/`; the sidebar is in `site/astro.config.mjs` |
 | `site/src/content/docs/specification/` | **The normative specification.** Changing it changes the protocol |
 | `site/src/content/docs/design/` | Guides and proposals (scaling, local policy, cost, providers, deployment) |
-| `site/src/components/` | Diagrams (`Architecture`, `MessageFlow`); home page: `Hero` (overrides Starlight's hero), `Arena` (playable protocol demo, simulated in the browser), `AgentPrompt`, `Principles`; brand: `SiteTitle` (wordmark with pixel-drawn "Game"), `Spark` (the pixel mark, also `public/favicon.svg`) |
+| `site/src/components/` | Diagrams (`Architecture`, `MessageFlow`); home page: `Hero` (overrides Starlight's hero), `Arena` (playable protocol demo, simulated in the browser), `AgentPrompt`, `Principles`, `Faq` (short barrier-focused FAQ; the full grouped one is `content/docs/faq.md`, keep them consistent); brand: `SiteTitle` (wordmark with pixel-drawn "Game"), `Spark` (the pixel mark, also `public/favicon.svg`) |
 | `site/src/llms.ts`, `site/src/pages/llms*.txt.ts` | Generate `/llms.txt` and `/llms-full.txt` from the docs at build time, never edit those outputs by hand |
 | `site/scripts/check-csp.mjs` | Build step: fails if an inline script or style is not allowed by the page CSP |
 | `site/deploy/nginx-security.conf` | Security headers for the production nginx |

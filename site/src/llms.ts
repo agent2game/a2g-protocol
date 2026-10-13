@@ -11,12 +11,12 @@ const SECTIONS: [string, (id: string) => boolean][] = [
 	['Design', (id) => id.startsWith('design/')],
 	['Implementations', (id) => id.startsWith('implementations/')],
 	['Examples', (id) => id.startsWith('examples/')],
-	['Reference', (id) => ['glossary', 'roadmap', 'about'].includes(id)],
+	['Reference', (id) => ['faq', 'glossary', 'roadmap', 'about'].includes(id)],
 ];
 
 const url = (site: URL, id: string) => new URL(id === 'index' ? '/' : `/${id}/`, site).href;
 // Pages listed by hand in the sidebar have no `order`; keep their sidebar sequence.
-const PINNED = ['docs/introduction', 'docs/architecture', 'guides/integrate', 'glossary', 'roadmap', 'about'];
+const PINNED = ['docs/introduction', 'docs/architecture', 'guides/integrate', 'faq', 'glossary', 'roadmap', 'about'];
 const order = (doc: Doc) => doc.data.sidebar?.order ?? (PINNED.indexOf(doc.id) + 1 || 999);
 
 async function sections() {
@@ -32,7 +32,7 @@ function clean(body: string, site: URL) {
 	return body
 		.replace(/^import .*$/gm, '')
 		.replace(/<Card title="([^"]+)"[^>]*>/g, '**$1**:')
-		.replace(/<\/?(CardGrid|Card|Steps|Architecture|MessageFlow)[^>]*>/g, '')
+		.replace(/<\/?(CardGrid|Card|Steps|Architecture|MessageFlow|Faq)[^>]*>/g, '')
 		.replace(/\]\(\//g, `](${site.origin}/`)
 		.replace(/\n{3,}/g, '\n\n')
 		.trim();
