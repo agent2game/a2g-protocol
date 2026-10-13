@@ -1,0 +1,5 @@
+# Everyone, including AI crawlers, may read the protocol docs. See also /llms.txt.
+User-agent: *
+Allow: /
+
+Sitemap: https://agent2game.org/sitemap-index.xml

@@ -33,7 +33,7 @@ Keep this file in English. Reply to people in their own language.
 - **Link glossary terms** on first mention with `[term](/glossary/#term)`; the site shows hover previews for them.
 - **Colours mean protocol states.** `--a2g-native` (blue), `--a2g-ai` (green) and `--a2g-fallback` (amber) are used only for native AI, AI decisions and fallback, never as decoration.
 - **Easter eggs stay harmless and on-message:** Konami code on the arena narrows `legal_actions`, five clicks on the spark show "1UP", the 404 page is "Game over". Keep them accessible and off by default.
-- **No third-party requests from the site.** Fonts and assets are self-hosted; the CSP is strict. Do not add CDNs, analytics or embeds without the owner's decision.
+- **No third-party requests from the site, except Google Analytics.** Fonts and assets are self-hosted; the CSP is strict. Google Analytics 4 (`G-B12Z880MB9`, owner's decision, no consent banner) is configured in `site/public/analytics.js` and allowed in the CSP in `site/astro.config.mjs`. Do not add other CDNs, analytics or embeds without the owner's decision.
 
 ## Checks
 
