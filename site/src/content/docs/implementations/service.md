@@ -7,7 +7,7 @@ sidebar:
 
 The reference decision service is a small Python service on FastAPI and uvicorn, with a Docker image. It implements the server side of the protocol for any game that sends a valid manifest.
 
-**Source and releases:** [github.com/agent2game/a2g-service](https://github.com/agent2game/a2g-service). Current release: `v0.1.1` (protocol 0.1), Docker image `ghcr.io/agent2game/a2g-service` for amd64 and arm64.
+**Source and releases:** [github.com/agent2game/a2g-service](https://github.com/agent2game/a2g-service). Current release: `v0.1.2` (protocol 0.1), Docker image `ghcr.io/agent2game/a2g-service` for amd64 and arm64.
 
 ## What it does
 
@@ -24,7 +24,7 @@ The reference decision service is a small Python service on FastAPI and uvicorn,
 ## Run
 
 ```bash
-docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.1
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.2
 ```
 
 Use `OPENAI_API_KEY` (and no `A2G_PROVIDER`) for OpenAI Decisions. Keep `-p 127.0.0.1:...`: the `local` profile has no authentication, and publishing the port on all interfaces would expose the service, and your key's budget, to your network. From a checkout of the repository: `cp .env.example .env`, add a key, `docker compose up -d --build`.
@@ -59,6 +59,7 @@ The specification leads; the reference implementations follow. Status of protoco
 | [Decision cache](/specification/manifest/#decision-cache) | yes: in memory, game-wide for `local` sessions; decisions with confidence below 0.5 are not cached; equivalent entities in one batch are asked once | n/a (transparent) | n/a (transparent) |
 | [Decision slots](/specification/manifest/#decision-slots) | yes: no cap on slots; one question per slot, split across parallel provider calls above `A2G_QUESTIONS_PER_CALL` (default 64); per-slot fallback, cache and budget per entity | yes: `legal_actions` / `execute` with `{slot: ...}` | yes: same |
 | [Probabilities and sampling](/specification/decide/#sampling) | yes: provider probabilities over the legal actions; reports may carry any legal action | yes: `sample = sampler(rng)` | yes: `sample: sampler(rng)` |
+| [Manifest drift](/guides/integrate/#keep-it-in-sync) | yes: rejected decide requests and SDK-reported mismatches are counted and shown as a banner in the Agent2Game Console | yes: checks before sending, `validate(node)`, `a2g/debug/strict` | yes: checks before sending, `validate(entity)`, `strict: true` |
 | [Fallback codes](/specification/decide/#fallback-codes) | yes | yes: kept per entity for debugging | yes: `decision(entity)` |
 | [Manifest hash](/specification/manifest/#manifest-hash) | yes | yes: stored from the session response | yes |
 | [`decision_id`](/specification/security/#decision-integrity) in decisions and reports | yes | yes | yes |

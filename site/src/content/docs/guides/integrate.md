@@ -28,6 +28,7 @@ Write a small client in your engine's language. It is the same for every game, s
 | Modes | Start in native mode; AI control is switched on explicitly and switching modes increments the epoch |
 | Security | No provider keys in the build; the session token on every request; no personal data in observations ([Security](/specification/security/)) |
 | Correctness | Validate your messages against the [JSON Schema](https://agent2game.org/schema/0.1/a2g.schema.json) in tests, and test with the service stopped: the game must play normally |
+| Drift | Before sending, check each observation, world, scope state and legal action against the manifest. Never send a mismatch: keep that entity on native AI, report it in telemetry's `last_error` as `Manifest mismatch: ...`, and fail loudly in tests ([keep it in sync](#keep-it-in-sync)) |
 
 The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `register_adapter`, `track`, `execute(entity, delta) -> bool`, `set_ai_enabled`, `update_context`, with events reported by the adapter's `trigger`. Keeping the same names makes the manifest, adapter and documentation portable between engines.
 
@@ -36,7 +37,7 @@ The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `re
 The client talks to an A2G **decision service**, which holds the provider key, validates requests and calls the model. Use an existing one: the [reference service](/implementations/service/) for development, or a hosted one. If none is running, start the reference service with Docker and a provider key:
 
 ```sh
-docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.1
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.2
 ```
 
 It answers on `http://127.0.0.1:8787` (`/health` for status, `/` for the Agent2Game Console). Do not write a service or a console for one game; their logic is the same for every game. Without Docker or a provider key, test the client against a stub that follows the [specification](/specification/overview/).
@@ -121,6 +122,16 @@ func _physics_process(delta):
 Switch AI mode off to return to the original behavior at any time.
 
 If the game already has an authenticated admin or operations area, add an "A2G" entry there that serves the Agent2Game Console through a server-side proxy (for example at `/admin/a2g/`) behind the admin's own login, rather than rebuilding the console. The proxy checks the admin session and the request's own `Origin`, then forwards to the service with the service's own `Host` and without the browser's `Origin`. If the admin authenticates with a bearer token in a header (for example a Firebase ID token) rather than a cookie, a browser cannot send it when it loads the console page, so have the admin mint a short-lived, signed, `HttpOnly` cookie scoped to the console path and check that cookie in the proxy.
+
+## Keep it in sync
+
+Games change: a new action, a renamed state, a field that becomes an enum. If the manifest and adapter do not follow, the service rejects the game's requests and the game silently plays on native AI. Three guards make drift loud instead:
+
+1. **One source of truth.** Build the manifest's actions and enum values from the game's own constants, or add a test that compares them.
+2. **A drift test.** Run the game for a few turns or seconds in a test with the SDK's strict mode on (`strict: true` in the [JS/TS SDK](/implementations/js-sdk/), `a2g/debug/strict` in the [Godot SDK](/implementations/godot-sdk/)), or call `validate(entity)` on every tracked entity. Any observation or legal action that no longer matches the manifest fails the test with the field and value named.
+3. **A rule for the next change.** Add to the game repository's `AGENTS.md` or `CLAUDE.md`: changing entities, actions or observed fields means updating the A2G manifest and adapter and running the drift test. Coding agents read it before they touch the game.
+
+At runtime the SDKs never send a mismatch: the entity stays on native AI (decision code `mismatch`), a warning is printed once per problem, and telemetry carries it, so the [Agent2Game Console](/implementations/service/) shows a "Manifest mismatch" banner with the field and value.
 
 ## 6. Scale up
 

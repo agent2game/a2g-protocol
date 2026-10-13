@@ -7,7 +7,7 @@ sidebar:
 
 The Godot SDK is a Godot 4 addon, `addons/a2g/`, that registers the autoload `A2G`. It implements the client side of the protocol and contains no game-specific code.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.2.2` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
+**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.3.0` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
 
 ## Install
 
@@ -75,6 +75,11 @@ Project Settings under `a2g/`, read at startup. Defaults apply when a setting is
 | `a2g/decisions/batch_interval` | `0.25` | Seconds between batch checks |
 | `a2g/decisions/default_interval_ms` | `3000` | Refresh interval when neither the adapter nor the manifest sets one |
 | `a2g/decisions/min_interval_ms` | `500` | Minimum time between two requests for one entity |
+| `a2g/debug/strict` | `false` | Manifest drift checks print an error every time instead of one warning, so headless test runs fail on a mismatch |
+
+## Manifest drift checks
+
+Before anything is sent, the SDK checks each observation, the world and every legal action against the manifest. A mismatch never reaches the service: the node stays on native AI (decision code `mismatch`), `last_error` names the field and value, and `push_warning` reports each problem once. `A2G.validate(node)` returns the problems for one node, and `a2g/debug/strict` turns them into errors for test runs. See [Keep it in sync](/guides/integrate/#keep-it-in-sync).
 
 ## Implementation status
 

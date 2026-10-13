@@ -1,7 +1,7 @@
 {
   "name": "a2g-protocol",
   "type": "module",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",

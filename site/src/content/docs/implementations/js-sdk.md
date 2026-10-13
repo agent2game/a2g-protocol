@@ -7,13 +7,13 @@ sidebar:
 
 The JS/TS SDK is an A2G client for web and Node games: browser games (Phaser, PixiJS, Three.js, plain canvas) and server-side or turn-based games (Node, Next.js, Deno, Bun). It is one TypeScript module with no runtime dependencies and no game-specific code. It behaves like the [Godot SDK](/implementations/godot-sdk/), with the same calls in JavaScript style, plus `decideNow()` for games that decide once per turn.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.2.2` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
+**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.3.0` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
 
 ```sh
-npm install github:agent2game/a2g-sdk-js#v0.2.2
+npm install github:agent2game/a2g-sdk-js#v0.3.0
 ```
 
-Tags are never moved, but for supply-chain safety you can pin the exact commit a tag points to: `git ls-remote https://github.com/agent2game/a2g-sdk-js v0.2.2` prints it, then `npm install github:agent2game/a2g-sdk-js#<commit>`.
+Tags are never moved, but for supply-chain safety you can pin the exact commit a tag points to: `git ls-remote https://github.com/agent2game/a2g-sdk-js v0.3.0` prints it, then `npm install github:agent2game/a2g-sdk-js#<commit>`.
 
 ## Real-time games
 
@@ -70,11 +70,22 @@ const a2g = new A2G({ manifest, sample: sampler(game.rng) });   // game.rng(): [
 
 The SDK samples on a decision's first `execute()`, in the game's order, and reports the actions the game executed.
 
+## Manifest drift checks
+
+Before anything is sent, the SDK checks each observation, the world, the scope state and every legal action against the manifest. A mismatch never reaches the service: that entity stays on native AI (decision code `mismatch`), `lastError` names the field and value, and a warning is printed once per problem. In tests, turn it into a failure:
+
+```ts
+const a2g = new A2G({ manifest, strict: true });   // a mismatch throws, so a game change that breaks the integration fails the build
+expect(a2g.validate(guard)).toEqual([]);            // or check one entity: ['guard.observation.mood is "furious", not one of "calm", "angry"']
+```
+
+See [Keep it in sync](/guides/integrate/#keep-it-in-sync).
+
 ## Adapter contract
 
 Same as the [Godot SDK](/implementations/godot-sdk/#adapter-contract) in camelCase (with the slot forms above): `observe`, `legalActions`, `execute` (required), `state`, `position` (`[x, y]`, `[x, y, z]` or `{x, y, z?}`), `trigger`, `intervalMs`, `release` (optional).
 
-Other calls: `track(entity, type, { id, name, profile, parent })`, `untrack(entity)`, `setParent`, `updateContext(scopes, profiles)`, `scopeReady`, `decision(entity)`, `sendTelemetry()`, `stop()`.
+Other calls: `track(entity, type, { id, name, profile, parent })`, `untrack(entity)`, `setParent`, `updateContext(scopes, profiles)`, `scopeReady`, `decision(entity)`, `validate(entity)`, `sendTelemetry()`, `stop()`.
 
 ## Browser games and the local service
 

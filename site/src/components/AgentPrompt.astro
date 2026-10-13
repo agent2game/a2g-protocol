@@ -11,7 +11,8 @@ const prompt = `Read ${url('/llms-full.txt')}, the Agent2Game (A2G) protocol 0.1
 5. Write the adapter (observe, legal_actions, execute) and hook the entities.
 6. Connect to an A2G decision service (${url('/guides/integrate/#decision-service')}): check http://127.0.0.1:8787/health; if none is running, start the reference service from its Docker image (ask me for the provider key, never put it in the repo). Do not write your own service or console. Without Docker or a key, test against a stub that follows the specification. Put the client where the game logic runs: on the game server for server-authoritative games. Never put provider API keys in the game or in a browser bundle.
 7. If the game has an authenticated admin area, propose an "A2G" entry that serves the Agent2Game Console through a server-side proxy instead of rebuilding it.
-8. Show me the plan and the manifest before changing existing game logic.`;
+8. Keep the integration in sync with the game (${url('/guides/integrate/#keep-it-in-sync')}): derive the manifest's actions and enums from the game's own constants or test that they match; add a test that runs the game for a while with the SDK's strict drift checks on (or validates every observation and legal action against the manifest); and add a rule to this repository's AGENTS.md or CLAUDE.md that changing entities, actions or observed fields means updating the A2G manifest and adapter and running those tests.
+9. Show me the plan and the manifest before changing existing game logic.`;
 ---
 
 <section class="agent-prompt not-content" aria-labelledby="agent-title">
