@@ -27,6 +27,7 @@ Keep this file in English. Reply to people in their own language.
 - **Mark what is not implemented.** The spec leads the reference implementations. Keep the "Implementation status" table on `implementations/service.md` honest, and mark proposals with the `:::caution[Proposed: not implemented yet]` aside.
 - **Be game-agnostic.** The protocol must fit 2D and 3D games and any kind of entity. Game-specific content belongs only in examples.
 - **Security is normative.** Changes that touch authentication, sessions, the cache, context or telemetry must keep `specification/security.md` consistent.
+- Never add AI co-author or attribution lines to commits, tags or PRs (no `Co-Authored-By: Claude ...`, no "Generated with Claude Code"). Commits are authored by the owner only.
 - Never use the em dash character (U+2014) in any text: site copy, docs, UI strings, code comments, commit messages. Use a period, comma, colon or parentheses instead.
 - **Write all site text, schema descriptions and code comments in English.**
 - **Do not add explanatory `.md` files** at the root; documentation belongs on the site. `README.md`, `SECURITY.md` and this file are the only root Markdown files.
