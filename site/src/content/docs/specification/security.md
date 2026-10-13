@@ -54,9 +54,20 @@ A service MUST refuse non-loopback connections in the `local` profile. A game bu
 A service on loopback is still reachable from every web page in the developer's browser. In the `local` profile a service MUST:
 
 - reject requests whose `Host` header is not `127.0.0.1`, `localhost` or `[::1]` (with any port); this defeats DNS rebinding;
-- reject requests that carry an `Origin` header other than its own console's origin;
+- reject requests that carry an `Origin` header other than its own console's origin, except the developer-listed origins below;
 - require `Content-Type: application/json` on every `POST`, so a cross-site page cannot send a "simple" request without a CORS preflight;
 - never send `Access-Control-Allow-Origin: *`.
+
+### Browser games during development
+
+A browser game served by a local dev server (for example `http://localhost:5173`) has a different origin from the service. A service MAY accept an explicit list of such origins, configured by the developer. If it does, it MUST:
+
+- accept only exact origins (scheme, host and port) whose host is `localhost`, `127.0.0.1` or `[::1]`, and refuse to start on wildcards, other hosts or entries with a path;
+- apply them only to the protocol routes (`/v1/*`) and `/health`, never to console routes;
+- answer CORS preflight (`OPTIONS`) requests from those origins for those routes, echo the exact matching origin in `Access-Control-Allow-Origin` with `Vary: Origin`, and allow only `GET`, `POST` and the `Content-Type` header;
+- keep the `Host` and `Content-Type` checks above.
+
+Without such a list, a browser game can reach the service through its dev server's proxy, which forwards requests without the browser's `Origin`. Such a proxy MUST first apply the same checks for its own origin (a loopback `Host`, no foreign `Origin`) and forward only `/v1/*` and `/health`; otherwise every web page in the browser reaches the service through it. Shipped browser games use the `client` profile instead.
 
 ## Authentication
 

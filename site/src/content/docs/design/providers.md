@@ -8,7 +8,7 @@ sidebar:
 The protocol does not name a model. A **decision provider** is anything that, given context and a list of options, returns one option, ideally with probabilities. The decision service hides the provider from the game: switching providers changes service configuration, not game code.
 
 :::note[Status]
-The 0.1 reference service supports **OpenAI Decisions** only. Other providers below are described as integration designs.
+The 0.1 reference service supports **OpenAI Decisions** (default) and **TypeSafe Jev**, switched with `A2G_PROVIDER` or in the Agent2Game Console. Jev-compatible open models need a configurable base URL, which the service does not have yet. Other providers below are described as integration designs.
 :::
 
 ## Comparison
@@ -41,14 +41,14 @@ Both typed-decision APIs evaluate all questions against the same input in parall
 - **Limits:** questions per request and Decisions-specific rate limits are not documented; `gpt-6-luna` model limits follow your OpenAI usage tier (from 5,000 requests/min and 2M tokens/min on the entry tier). Access may still be gated during the beta.
 - **Docs:** [Decisions guide](https://developers.openai.com/api/docs/guides/decisions).
 
-This is the provider used by the reference service and the [Lango example](/examples/lango/).
+This is the reference service's default provider and the one used in the [Lango example](/examples/lango/).
 
 ## TypeSafe Jev
 
 - **Endpoint:** `POST https://api.typesafe.ai/v1/systemone`, model `jev-latest` (currently `jev-1.13.0`; pin a version when tuning confidence thresholds).
 - **Request:** `state` (shared context) and `questions` as a map `{id: {type: "choice", instructions, criteria: {option: description}}}`. Up to 255 options per choice.
 - **Response:** `answers` by id with `choice`, `probabilities` and `confidence`, plus `usage.input_tokens`.
-- **Key:** create one at [console.typesafe.ai/keys](https://console.typesafe.ai/keys); the service would read `TYPESAFE_API_KEY`.
+- **Key:** create one at [console.typesafe.ai/keys](https://console.typesafe.ai/keys); the reference service reads `TYPESAFE_API_KEY`.
 - **Limits:** 64k tokens per request; by default 100k tokens/s and 80 requests/s (higher on enterprise plans). Returns 429/529 under load, retry with backoff or fall back.
 - **Notes:** the docs advise keeping the state focused, since unrelated content lowers accuracy, another reason to send only relevant objects.
 - **Docs:** [TypeSafe API](https://docs.typesafe.ai/api.md).

@@ -91,4 +91,4 @@ See [Local policy](/design/local-policy/).
 
 ## Other engines
 
-There is no SDK for Unity, Unreal or other engines yet. Any client that follows the [specification](/specification/overview/) works with the service. A Unity SDK with a C# policy evaluator is the planned second engine; it must pass the same conformance vectors, so one policy file behaves the same in Godot and Unity.
+Web and Node games use the [JS/TS SDK](/implementations/js-sdk/). There is no SDK for Unity, Unreal or other engines yet. Any client that follows the [specification](/specification/overview/) works with the service. A Unity SDK with a C# policy evaluator is the planned next engine SDK; it must pass the same conformance vectors, so one policy file behaves the same in Godot and Unity.

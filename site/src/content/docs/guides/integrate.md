@@ -3,11 +3,13 @@ title: Integrate a game
 description: The steps to connect an existing game to A2G, manifest, adapter and hooks.
 ---
 
-This guide uses the [Godot SDK](/implementations/godot-sdk/). The steps are the same for any engine.
+This guide uses the [Godot SDK](/implementations/godot-sdk/); the [JS/TS SDK](/implementations/js-sdk/) has the same calls in JavaScript style. The steps are the same for any engine.
+
+One principle runs through every step: the game's existing decision logic (an FSM, rules, utility AI, behavior trees, even its own model calls) is its **native AI**. A2G does not replace or rewrite it. It is the default, and it runs whenever A2G has no fresh, valid decision.
 
 ## 0. Find or write the client
 
-Check [Implementations](/implementations/godot-sdk/) for an SDK for your engine. If there is one, use it and continue with step 1.
+Check Implementations for an SDK for your engine or language: [Godot](/implementations/godot-sdk/), [JavaScript and TypeScript](/implementations/js-sdk/) (browser and Node). If there is one, use it and continue with [the decision service](#decision-service).
 
 ### No SDK for your engine
 
@@ -16,7 +18,7 @@ Write a small client in your engine's language. It is the same for every game, s
 | Area | Rule |
 | --- | --- |
 | Separation | Engine-specific but **game-agnostic**: no references to your game's classes. Everything game-specific lives in the adapter and the manifest |
-| Threads and frames | Never block a frame on the network. Requests are asynchronous; at most a few in flight |
+| Game loop | Never block a game-loop step (frame, tick or turn) on the network. Requests are asynchronous; at most a few in flight. A turn-based or server game may wait for a turn's decisions, with a hard time limit, and fall back for the rest |
 | Session | Load the manifest from a file, open [`/v1/session`](/specification/session/), keep the `session_token`, reopen on `401`/`409` |
 | Decide | Batch up to 16 entities that need a decision (timer, [event](/specification/manifest/#events) or changed values) into one [`/v1/decide`](/specification/decide/) |
 | Validation | Drop replies with an old `epoch`; accept an action only if it is in the `legal_actions` you sent; expire it after `ttl_ms` |
@@ -27,7 +29,21 @@ Write a small client in your engine's language. It is the same for every game, s
 | Security | No provider keys in the build; the session token on every request; no personal data in observations ([Security](/specification/security/)) |
 | Correctness | Validate your messages against the [JSON Schema](https://agent2game.org/schema/0.1/a2g.schema.json) in tests, and test with the service stopped: the game must play normally |
 
-The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `register_adapter`, `track`, `execute(entity, delta) -> bool`, `set_ai_enabled`, `notify(entity, event)`. Keeping the same names makes the manifest, adapter and documentation portable between engines.
+The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `register_adapter`, `track`, `execute(entity, delta) -> bool`, `set_ai_enabled`, `update_context`, with events reported by the adapter's `trigger`. Keeping the same names makes the manifest, adapter and documentation portable between engines.
+
+### Decision service
+
+The client talks to an A2G **decision service**, which holds the provider key, validates requests and calls the model. Use an existing one: the [reference service](/implementations/service/) for development, or a hosted one. Do not write a service or a console for one game; their logic is the same for every game. If no service is available yet, test the client against a stub that follows the [specification](/specification/overview/).
+
+Where things run:
+
+| Game | Client | Service |
+| --- | --- | --- |
+| Desktop, mobile or console game | In the game | On the developer's machine for development; a hosted service with join tokens (`client` [profile](/specification/security/#deployment-profiles)) when shipped |
+| Browser game, logic in the page | In the page | Same as above. During development, list the dev server's origin ([browser games](/specification/security/#browser-games-during-development)) or proxy through the dev server |
+| Server-authoritative game (multiplayer, turn-based, web game with a backend) | On the game server, so true state never reaches players | Next to the game server (`server` profile) |
+
+A provider key never ships to players: not in a build, not in a browser bundle.
 
 ## 1. Choose entities and actions
 
@@ -91,6 +107,8 @@ func _physics_process(delta):
 3. Open the Agent2Game Console at `http://127.0.0.1:8787/` and check that decisions are `AI`, actions match executed states and reports arrive.
 
 Switch AI mode off to return to the original behavior at any time.
+
+If the game already has an authenticated admin or operations area, add an "A2G" entry there that serves the Agent2Game Console through a server-side proxy (for example at `/admin/a2g/`) behind the admin's own login, rather than rebuilding the console. The proxy checks the admin session and the request's own `Origin`, then forwards to the service with the service's own `Host` and without the browser's `Origin`.
 
 ## 6. Scale up
 
