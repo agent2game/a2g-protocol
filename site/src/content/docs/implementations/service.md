@@ -5,7 +5,7 @@ sidebar:
   order: 2
 ---
 
-The reference decision service is a single Python file using only the standard library. It implements the server side of the protocol for any game that sends a valid manifest.
+The reference decision service is a small Python service on FastAPI and uvicorn, with a Docker image. It implements the server side of the protocol for any game that sends a valid manifest.
 
 :::caution[Not published yet]
 The service is not yet available in a public repository. Publishing it is on the [roadmap](/roadmap/).
@@ -27,10 +27,12 @@ The service is not yet available in a public repository. Publishing it is on the
 
 ```bash
 echo "OPENAI_API_KEY=..." > .env
-python3 decision_service.py
+docker compose up -d --build
 ```
 
-The service listens on `http://127.0.0.1:8787`. Open `/` for the Agent2Game Console and `/health` for status.
+Without Docker: `pip install -r requirements.txt`, then `python3 decision_service.py` (Python 3.12+).
+
+The service listens on `http://127.0.0.1:8787` (Docker publishes it on `127.0.0.1` only; the SQLite file lives in a volume). It runs as one process, because sessions, the decision cache and memory are held in it. The local profile has no authentication, so do not expose it on a public interface. Open `/` for the Agent2Game Console and `/health` for status.
 
 ## Implementation status
 
