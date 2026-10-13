@@ -120,7 +120,7 @@ func _physics_process(delta):
 
 Switch AI mode off to return to the original behavior at any time.
 
-If the game already has an authenticated admin or operations area, add an "A2G" entry there that serves the Agent2Game Console through a server-side proxy (for example at `/admin/a2g/`) behind the admin's own login, rather than rebuilding the console. The proxy checks the admin session and the request's own `Origin`, then forwards to the service with the service's own `Host` and without the browser's `Origin`.
+If the game already has an authenticated admin or operations area, add an "A2G" entry there that serves the Agent2Game Console through a server-side proxy (for example at `/admin/a2g/`) behind the admin's own login, rather than rebuilding the console. The proxy checks the admin session and the request's own `Origin`, then forwards to the service with the service's own `Host` and without the browser's `Origin`. If the admin authenticates with a bearer token in a header (for example a Firebase ID token) rather than a cookie, a browser cannot send it when it loads the console page, so have the admin mint a short-lived, signed, `HttpOnly` cookie scoped to the console path and check that cookie in the proxy.
 
 ## 6. Scale up
 
