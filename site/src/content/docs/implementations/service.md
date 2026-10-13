@@ -7,9 +7,7 @@ sidebar:
 
 The reference decision service is a small Python service on FastAPI and uvicorn, with a Docker image. It implements the server side of the protocol for any game that sends a valid manifest.
 
-:::caution[Not published yet]
-The service is not yet available in a public repository. Publishing it is on the [roadmap](/roadmap/).
-:::
+**Source and releases:** [github.com/agent2game/a2g-service](https://github.com/agent2game/a2g-service). Current release: `v0.1.0` (protocol 0.1), Docker image `ghcr.io/agent2game/a2g-service` for amd64 and arm64.
 
 ## What it does
 
@@ -26,11 +24,12 @@ The service is not yet available in a public repository. Publishing it is on the
 ## Run
 
 ```bash
-echo "OPENAI_API_KEY=..." > .env
-docker compose up -d --build
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.0
 ```
 
-Settings in `.env` (the process environment wins):
+Use `OPENAI_API_KEY` (and no `A2G_PROVIDER`) for OpenAI Decisions. Keep `-p 127.0.0.1:...`: the `local` profile has no authentication, and publishing the port on all interfaces would expose the service, and your key's budget, to your network. From a checkout of the repository: `cp .env.example .env`, add a key, `docker compose up -d --build`.
+
+Settings (`-e` in Docker, or `.env`; the process environment wins):
 
 | Variable | Meaning |
 | --- | --- |

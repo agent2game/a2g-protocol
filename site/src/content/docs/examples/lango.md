@@ -10,7 +10,7 @@ description: A complete A2G integration in an existing Godot RPG, with scopes, p
 This page shows Lango running on A2G protocol 0.1 with the [Godot SDK](/implementations/godot-sdk/) and the [reference service](/implementations/service/) in the `local` [deployment profile](/glossary/#deployment-profile).
 
 :::caution[Status]
-Everything on this page runs today, except the `client` security profile in [Security](#4-security), which is specified but not yet implemented. The reference service is not public yet, so running the example with live decisions needs your own A2G decision service; without one the game plays on its native AI.
+Everything on this page runs today, except the `client` security profile in [Security](#4-security), which is specified but not yet implemented. Live decisions need a running decision service, for example the [reference service](/implementations/service/) from its Docker image; without one the game plays on its native AI.
 :::
 
 ![Lango with the A2G debug overlay: bees under AI control, the chosen action, confidence and the A2G service status](/images/lango-overlay.png)
@@ -334,7 +334,7 @@ The defaults are reliable; the intermediate rules (C, E) are not followed reliab
 ## 8. Run it
 
 ```sh
-cd a2g-poc && python3 decision_service.py      # needs OPENAI_API_KEY in .env
+docker run -d -p 127.0.0.1:8787:8787 -e OPENAI_API_KEY=... ghcr.io/agent2game/a2g-service:0.1.0
 godot --path examples/Lango_GodotRPG res://Levels/Level1.tscn -- --a2g-ai
 ```
 

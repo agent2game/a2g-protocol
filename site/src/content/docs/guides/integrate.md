@@ -33,7 +33,13 @@ The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `re
 
 ### Decision service
 
-The client talks to an A2G **decision service**, which holds the provider key, validates requests and calls the model. Use an existing one: the [reference service](/implementations/service/) for development, or a hosted one. Do not write a service or a console for one game; their logic is the same for every game. If no service is available yet, test the client against a stub that follows the [specification](/specification/overview/).
+The client talks to an A2G **decision service**, which holds the provider key, validates requests and calls the model. Use an existing one: the [reference service](/implementations/service/) for development, or a hosted one. If none is running, start the reference service with Docker and a provider key:
+
+```sh
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.0
+```
+
+It answers on `http://127.0.0.1:8787` (`/health` for status, `/` for the Agent2Game Console). Do not write a service or a console for one game; their logic is the same for every game. Without Docker or a provider key, test the client against a stub that follows the [specification](/specification/overview/).
 
 Where things run:
 
