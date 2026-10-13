@@ -136,7 +136,7 @@ The decision carries one result per slot under one `decision_id`. Each slot eith
 
 ## Sampling
 
-`action` is the provider's most likely choice. A game whose native AI rolls dice (behaviour happens with some probability each turn) keeps its odds by **sampling** from `probabilities` with its own random generator instead: a 30 % behaviour then happens in about 30 % of turns, as before, and a seeded game replays identically. The game reports the action it actually executed; the service accepts any action that was legal for the decision. Sample once per decision, in the game's own order (not in the order replies arrive), so replays do not depend on the network.
+`action` is the provider's most likely choice. A game whose native AI rolls dice (behaviour happens with some probability each turn) keeps its odds by **sampling** from `probabilities` with its own random generator instead: a 30 % behaviour then happens in about 30 % of turns, as before, and a seeded game replays identically. The game reports the action it actually executed; the service accepts any action that was legal for the decision. Sample once per decision, in the game's own order (not in the order replies arrive), so replays do not depend on the network, and only among the actions the game offered: never trust `probabilities` to name a legal action.
 
 ## Scope
 
