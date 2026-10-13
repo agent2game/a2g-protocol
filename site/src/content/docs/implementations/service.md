@@ -57,6 +57,8 @@ The specification leads; the reference implementations follow. Status of protoco
 | [Field types](/specification/manifest/#field-types) `vector2`, `vector3`, `entity_ref`, lists, numeric enums | yes | yes (passed through from the adapter) | yes (passed through from the adapter) |
 | [Token budget](/specification/manifest/#token-budget) | yes (~4 chars/token) | n/a | n/a |
 | [Decision cache](/specification/manifest/#decision-cache) | yes: in memory, game-wide for `local` sessions; decisions with confidence below 0.5 are not cached; equivalent entities in one batch are asked once | n/a (transparent) | n/a (transparent) |
+| [Decision slots](/specification/manifest/#decision-slots) | yes: one question per slot, per-slot fallback, cache and budget per entity | yes: `legal_actions` / `execute` with `{slot: ...}` | yes: same |
+| [Probabilities and sampling](/specification/decide/#sampling) | yes: provider probabilities over the legal actions; reports may carry any legal action | yes: `sample = sampler(rng)` | yes: `sample: sampler(rng)` |
 | [Fallback codes](/specification/decide/#fallback-codes) | yes | yes: kept per entity for debugging | yes: `decision(entity)` |
 | [Manifest hash](/specification/manifest/#manifest-hash) | yes | yes: stored from the session response | yes |
 | [`decision_id`](/specification/security/#decision-integrity) in decisions and reports | yes | yes | yes |

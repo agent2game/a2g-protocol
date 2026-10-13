@@ -7,7 +7,7 @@ sidebar:
 
 The Godot SDK is a Godot 4 addon, `addons/a2g/`, that registers the autoload `A2G`. It implements the client side of the protocol and contains no game-specific code.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.1.1` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
+**Source and releases:** [github.com/agent2game/a2g-sdk-godot](https://github.com/agent2game/a2g-sdk-godot). Current release: `v0.2.0` (protocol 0.1, Godot 4.7). The repository also has a minimal [demo](https://github.com/agent2game/a2g-sdk-godot/tree/main/demo) and offline tests.
 
 ## Install
 
@@ -44,6 +44,9 @@ if A2G.execute(self, delta):        # in _physics_process; true = A2G controls t
 
 # Mode
 A2G.set_ai_enabled(true)            # increments the epoch and clears decisions
+
+# Sampling (optional): draw actions from the provider's probabilities with the game's seeded RNG
+A2G.sample = A2G.sampler(game_rng)
 ```
 
 ## Adapter contract
@@ -51,8 +54,8 @@ A2G.set_ai_enabled(true)            # increments the epoch and clears decisions
 | Method | Required | Purpose |
 | --- | --- | --- |
 | `observe(node) -> Dictionary` | yes | Observation fields declared for the type |
-| `legal_actions(node) -> Array` | yes | Actions allowed now; empty means "do not ask" (observe-only types) |
-| `execute(node, action, delta) -> bool` | yes | Perform the action; `false` = blocked, the adapter did something safe instead |
+| `legal_actions(node) -> Array` | yes | Actions allowed now; empty means "do not ask" (observe-only types). For [decision slots](/specification/manifest/#decision-slots): `{slot: Array}` for the slots to ask |
+| `execute(node, action, delta) -> bool` | yes | Perform the action; `false` = blocked, the adapter did something safe instead. For decision slots `action` is `{slot: action}` for the decided slots; run native AI for the rest |
 | `state(node) -> String` | no | Actual executed state for telemetry |
 | `position(node) -> Vector2/Vector3` | no | Enables `nearby` and group member ordering |
 | `trigger(node) -> String` | no | Name of a manifest event that just happened, or `""`; asks for a decision now |

@@ -124,7 +124,7 @@ A service reachable from outside its machine MUST accept sessions only for **reg
 ## Decision integrity
 
 - **Multiplayer: decide on the server.** In a multiplayer game, the game **server** runs the SDK in the `server` profile and replicates the resulting behavior to clients like any other server-side state. Clients never call `/v1/decide` for shared entities, so they cannot forge decisions for other players.
-- **`decision_id`.** Every `AI` decision carries an opaque, unique `decision_id`. A [report](/specification/report/) MUST reference it; the service ignores reports whose `decision_id` was not issued to the same session and entity, or was already reported. Fake or replayed reports cannot poison memory.
+- **`decision_id`.** Every `AI` decision carries an opaque, unique `decision_id`. A [report](/specification/report/) MUST reference it; the service ignores reports whose `decision_id` was not issued to the same session and entity, or was already reported, and reports whose action (or slot actions) was not legal for that decision. Because a game may [sample](/specification/decide/#sampling), a report may name any action that was legal, not only the one the service suggested. Fake or replayed reports cannot poison memory.
 - **Epoch and TTL** bound every decision in time; a stale or out-of-epoch decision is dropped by the game.
 - **Relayed decisions.** If a decision must travel through an untrusted hop, the relaying server signs it itself; A2G decisions are not meant to be trusted outside the authenticated channel they arrived on.
 

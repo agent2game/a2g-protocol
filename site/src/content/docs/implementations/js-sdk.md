@@ -7,10 +7,10 @@ sidebar:
 
 The JS/TS SDK is an A2G client for web and Node games: browser games (Phaser, PixiJS, Three.js, plain canvas) and server-side or turn-based games (Node, Next.js, Deno, Bun). It is one TypeScript module with no runtime dependencies and no game-specific code. It behaves like the [Godot SDK](/implementations/godot-sdk/), with the same calls in JavaScript style, plus `decideNow()` for games that decide once per turn.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.1.1` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
+**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.2.0` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
 
 ```sh
-npm install github:agent2game/a2g-sdk-js#v0.1.1
+npm install github:agent2game/a2g-sdk-js#v0.2.0
 ```
 
 ## Real-time games
@@ -57,9 +57,20 @@ await a2g.sendTelemetry();          // after every turn, instead of a timer
 
 A decision that ran is reported as `executed` when the next turn replaces it, even if the player's turn outlasted its `ttl_ms`.
 
+## Decision slots and sampling
+
+For a type with [decision slots](/specification/manifest/#decision-slots), `legalActions` returns `{ slot: actions }` for the slots to ask (leave one out to keep it native) and `execute` receives `{ slot: action }` for the slots A2G decided. To keep the game's odds and seeded replays, pass a sampler built on the game's random function:
+
+```ts
+import { A2G, sampler } from '@agent2game/a2g';
+const a2g = new A2G({ manifest, sample: sampler(game.rng) });   // game.rng(): [0, 1)
+```
+
+The SDK samples on a decision's first `execute()`, in the game's order, and reports the actions the game executed.
+
 ## Adapter contract
 
-Same as the [Godot SDK](/implementations/godot-sdk/#adapter-contract) in camelCase: `observe`, `legalActions`, `execute` (required), `state`, `position` (`[x, y]`, `[x, y, z]` or `{x, y, z?}`), `trigger`, `intervalMs`, `release` (optional).
+Same as the [Godot SDK](/implementations/godot-sdk/#adapter-contract) in camelCase (with the slot forms above): `observe`, `legalActions`, `execute` (required), `state`, `position` (`[x, y]`, `[x, y, z]` or `{x, y, z?}`), `trigger`, `intervalMs`, `release` (optional).
 
 Other calls: `track(entity, type, { id, name, profile, parent })`, `untrack(entity)`, `setParent`, `updateContext(scopes, profiles)`, `scopeReady`, `decision(entity)`, `sendTelemetry()`, `stop()`.
 

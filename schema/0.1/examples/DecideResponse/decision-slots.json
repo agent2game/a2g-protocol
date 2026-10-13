@@ -1,0 +1,51 @@
+{
+  "a2g": "0.1",
+  "epoch": 3,
+  "latency_ms": 310,
+  "decisions": [
+    {
+      "id": "p7",
+      "source": "AI",
+      "ttl_ms": 60000,
+      "decision_id": "d_8e1b3680a698412c",
+      "slots": {
+        "effort": {
+          "action": "carry_on",
+          "label": "Work as usual",
+          "confidence": 0.52,
+          "probabilities": {
+            "carry_on": 0.62,
+            "push_harder": 0.08,
+            "reduce_effort": 0.3
+          }
+        },
+        "help": {
+          "action": "help_colleague",
+          "label": "Stay late to help",
+          "confidence": 0.71,
+          "probabilities": {
+            "none": 0.21,
+            "help_colleague": 0.79
+          }
+        },
+        "raise": {
+          "code": "refused",
+          "reason": "The model declined to choose"
+        }
+      }
+    },
+    {
+      "id": "p9",
+      "source": "AI",
+      "action": "carry_on",
+      "label": "Work as usual",
+      "confidence": 0.9,
+      "probabilities": {
+        "carry_on": 0.95,
+        "reduce_effort": 0.05
+      },
+      "ttl_ms": 60000,
+      "decision_id": "d_77"
+    }
+  ]
+}

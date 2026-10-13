@@ -51,6 +51,8 @@ A game server runs **one client per match** (game, room or save), each with its 
 
 Pick the kind of entity whose behavior you want the model to drive: enemies, NPCs, units. List the actions your game **already knows how to execute** for them, such as `chase`, `flee`, `idle`, `wander`. A2G does not add new abilities; it chooses between existing ones.
 
+Keep the game's rules of play. If the native AI makes **several independent choices** per turn (how hard to work, whether to help, whether to ask for a raise), declare them as [decision slots](/specification/manifest/#decision-slots) rather than one list, so they can still happen together. If it **rolls dice** (a behaviour happens with some probability), [sample](/specification/decide/#sampling) from the returned probabilities with the game's own random generator instead of always taking the most likely action. Then AI mode changes *who* weighs the situation, not what can happen in the game.
+
 ## 2. Write the manifest
 
 Create `a2g_manifest.json` describing the world, each entity type, what it observes and its actions. See [Manifest](/specification/manifest/) for the format.
@@ -61,7 +63,7 @@ Tips:
 - Put personality in the type `description`, mechanics in action descriptions.
 - Expose only what the entity could plausibly know.
 - Leave out `max_input_tokens` at first. Add a budget once you know the real size from the Agent2Game Console; a budget below the size of a type's question makes every decision of that type fall back with `code: "budget"`.
-- If the game replays runs from a seed, keep the random stream identical in AI mode: let the native AI draw its random numbers as usual and only replace the chosen action.
+- If the game replays runs from a seed, [sample](/specification/decide/#sampling) A2G's probabilities with the game's seeded generator, once per decision and in the game's own order, so a run replays identically.
 
 ## 3. Write the adapter
 

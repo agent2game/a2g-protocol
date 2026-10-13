@@ -1,0 +1,41 @@
+{
+  "entity_types": {
+    "employee": {
+      "description": "A startup employee. Several things happen in one week.",
+      "fields": {
+        "stress": [
+          "low",
+          "high"
+        ],
+        "colleague_overloaded": "boolean"
+      },
+      "decisions": {
+        "effort": {
+          "description": "How hard they work this week",
+          "actions": {
+            "carry_on": "Work as usual",
+            "push_harder": "Longer hours",
+            "reduce_effort": "Pull back"
+          }
+        },
+        "help": {
+          "description": "Whether they help the overloaded colleague",
+          "actions": {
+            "none": "Stay on their own work",
+            "help_colleague": "Stay late to help"
+          }
+        },
+        "raise": {
+          "actions": {
+            "none": "Say nothing about pay",
+            "ask_raise": "Ask the CEO for a raise"
+          }
+        }
+      },
+      "decision_ttl_ms": 60000,
+      "actions": {
+        "carry_on": "Work as usual"
+      }
+    }
+  }
+}

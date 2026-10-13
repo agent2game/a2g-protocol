@@ -72,7 +72,7 @@ Only `entity_types` is required. Everything else is optional, so a small game ca
 | `world_fields` | Schema of the shared world state sent with every decision | ≤ 24 fields |
 | [`scopes`](#scopes) | Named blocks of static context: levels, zones, chapters | ≤ 64 scopes |
 | [`profiles`](#profiles) | Named static descriptions of individual characters | ≤ 256 profiles |
-| `entity_types` | Kinds of entities; at least one must have actions | 1–32 types |
+| `entity_types` | Kinds of entities; at least one must have actions or decisions | 1–32 types |
 
 ## Entity types
 
@@ -81,6 +81,7 @@ Only `entity_types` is required. Everything else is optional, so a small game ca
 | `description` | Role and character of the type, the main lever on behavior | ≤ 1000 chars |
 | `fields` | Schema of what one entity observes ([field types](#field-types)) | ≤ 24 fields |
 | `actions` | Action name → description shown to the model. Empty (`{}`) makes the type **observe-only**: reported in telemetry and visible to others, never decided (e.g. the player) | 0–32 actions, ≤ 300 chars each |
+| [`decisions`](#decision-slots) | Instead of `actions`: independent choices the entity makes at the same time, each with its own actions | 1–8 slots |
 | `events` | Event name → description. Things that can make an entity ask for a decision now; see [events](#events) | ≤ 16 events, ≤ 300 chars each |
 | `decision_ttl_ms` | How long a decision stays valid | 1000–120000, default 12000 |
 | `refresh_ms` | How often an SDK should re-ask **without** an event. A hint, not a guarantee | 1000–600000, SDK default |
@@ -89,6 +90,27 @@ Only `entity_types` is required. Everything else is optional, so a small game ca
 | `cache` | Rules for reusing decisions across equivalent situations; see [decision cache](#decision-cache) | n/a |
 
 A type does not have to be a visible object. A **squad**, a **faction** or a level **director** can be an entity type whose actions are high-level intents, with ordinary entities pointing to it as their [`parent`](/specification/decide/#groups). See [Scaling to complex games](/design/scaling/#1-decide-at-the-right-level).
+
+## Decision slots
+
+Some entities make **several independent choices at once**: in one week an employee decides how hard to work, whether to help a colleague and whether to ask for a raise; in one turn a unit picks a move and a target. Squeezing these into one `actions` list changes what can happen in the game: only one of them per decision. Declare them as **decision slots** instead, with `decisions` in place of `actions`:
+
+```json
+"employee": {
+  "description": "A startup employee.",
+  "fields": { "workload": ["light", "sustainable", "overloaded"], "pay_vs_market": ["below", "at", "above"] },
+  "decisions": {
+    "effort": { "description": "How hard they work this week", "actions": { "carry_on": "Work as usual", "push_harder": "Longer hours", "reduce_effort": "Pull back" } },
+    "help":   { "description": "Whether they help the overloaded colleague", "actions": { "none": "Stay on their own work", "help_colleague": "Stay late to help" } },
+    "raise":  { "actions": { "none": "Say nothing about pay", "ask_raise": "Ask the CEO for a raise" } }
+  }
+}
+```
+
+- A type has either `actions` or `decisions`, never both. Each slot has its own `actions` (1–32) and an optional `description` (≤ 300 chars).
+- A yes/no behaviour is a slot with the action and a `none` option, so the model can choose not to do it.
+- Slots are asked together, one provider question per slot, and decided **independently**. In a decide request `legal_actions` names the slots to ask now ([decide](/specification/decide/#decision-slots)); a slot left out stays with the native AI.
+- Put behaviours that exclude each other (push harder or slack off) into one slot, and behaviours that can happen together into separate slots.
 
 ## Field types
 

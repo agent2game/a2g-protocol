@@ -29,8 +29,9 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 
 | Field | Notes |
 | --- | --- |
+| `action` / `actions` | The action the game executed, or for a decision with [slots](/specification/decide/#decision-slots) `{slot: action}` for the slots it executed. With [sampling](/specification/decide/#sampling) it may differ from the service's `action`, but must have been legal for the decision |
 | `decision_id` | The `decision_id` of the decision being reported. Reports for ids not issued to this session and entity, or already reported, are ignored, fake reports cannot poison memory |
-| `status` | `executed`: ran until replaced; `blocked`: the game refused to execute it; `expired`: TTL passed |
+| `status` | `executed`: ran until replaced (also when a long turn outlasted its TTL); `blocked`: the game refused to execute it; `expired`: TTL passed with no new decision |
 | `outcome` | Up to 12 scalar values chosen by the game |
 
 The reference SDK reports numeric **deltas** of the observation and world (`<field>_delta`, world keys prefixed `world_`) between the decision and its end, plus `seconds`. This is a convention, not a requirement.

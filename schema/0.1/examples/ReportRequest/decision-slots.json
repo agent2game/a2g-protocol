@@ -1,0 +1,13 @@
+{
+  "client_id": "startup-42",
+  "entity_id": "p7",
+  "decision_id": "d_8e1b3680a698412c",
+  "status": "executed",
+  "actions": {
+    "effort": "reduce_effort",
+    "help": "help_colleague"
+  },
+  "outcome": {
+    "seconds": 41.5
+  }
+}

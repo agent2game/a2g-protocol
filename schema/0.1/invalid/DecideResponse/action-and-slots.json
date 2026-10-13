@@ -1,0 +1,18 @@
+{
+  "a2g": "0.1",
+  "epoch": 3,
+  "decisions": [
+    {
+      "id": "p7",
+      "source": "AI",
+      "action": "carry_on",
+      "ttl_ms": 60000,
+      "decision_id": "d_1",
+      "slots": {
+        "effort": {
+          "action": "carry_on"
+        }
+      }
+    }
+  ]
+}

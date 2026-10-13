@@ -3,7 +3,7 @@ title: Roadmap
 description: What comes next for A2G, and open design questions for complex games.
 ---
 
-**Done in 0.1:** game-agnostic manifest, batched decisions, per-entity memory via reports, protocol version in session, situation context (population, nearby), scopes, profiles and `/v1/context`, groups, events and `refresh_ms`, vector, reference and list fields, token budgets, decision cache, fallback codes, manifest hash, `decision_id` and the `local` security profile (with developer-listed browser origins), in the Godot SDK, the JS/TS SDK and the reference service, which also supports TypeSafe Jev as a second provider.
+**Done in 0.1:** game-agnostic manifest, batched decisions, per-entity memory via reports, protocol version in session, situation context (population, nearby), scopes, profiles and `/v1/context`, groups, events and `refresh_ms`, vector, reference and list fields, token budgets, decision cache, fallback codes, manifest hash, `decision_id` and the `local` security profile (with developer-listed browser origins), [decision slots](/specification/manifest/#decision-slots) and [sampling](/specification/decide/#sampling) from provider probabilities, in the Godot SDK, the JS/TS SDK and the reference service, which also supports TypeSafe Jev as a second provider.
 
 **Specified in 0.1, not yet implemented:** the `server` and `client` security profiles (API keys, join tokens, session tokens), registered manifests, rate limits and client-session cache isolation. See [implementation status](/implementations/service/#implementation-status).
 

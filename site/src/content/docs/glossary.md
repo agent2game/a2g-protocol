@@ -39,6 +39,10 @@ The subset of a type's actions that the game allows for an entity right now. The
 
 The service's answer for one entity: an action with `source: AI`, or `source: FALLBACK` when no valid choice was made.
 
+## Decision slot
+
+One of several independent choices an entity makes at the same time, such as how hard to work and whether to ask for a raise in the same week. Declared with `decisions` in the manifest; each slot has its own actions and is decided separately. See [decision slots](/specification/manifest/#decision-slots).
+
 ## Epoch
 
 A counter the game increments when context is invalidated, for example on a mode switch or scene change. Replies with an old epoch are discarded.

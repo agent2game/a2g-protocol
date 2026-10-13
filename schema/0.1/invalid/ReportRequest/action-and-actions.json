@@ -1,0 +1,10 @@
+{
+  "client_id": "startup-42",
+  "entity_id": "p7",
+  "decision_id": "d_1",
+  "status": "executed",
+  "action": "carry_on",
+  "actions": {
+    "effort": "carry_on"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "client_id": "startup-42",
+  "epoch": 3,
+  "world": {},
+  "entities": [
+    {
+      "id": "p7",
+      "type": "employee",
+      "observation": {
+        "stress": "high",
+        "colleague_overloaded": true
+      },
+      "legal_actions": {
+        "effort": [
+          "carry_on",
+          "push_harder",
+          "reduce_effort"
+        ],
+        "help": [
+          "none",
+          "help_colleague"
+        ],
+        "raise": [
+          "none",
+          "ask_raise"
+        ]
+      }
+    }
+  ]
+}

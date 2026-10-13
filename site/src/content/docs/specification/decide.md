@@ -53,7 +53,7 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 | `entities` | yes | 1–16 entities, unique `id`s |
 | `.type` | yes | A type declared in the manifest, with actions |
 | `.observation` | yes | [Observation](/glossary/#observation): exactly the type's `fields` |
-| [`.legal_actions`](/glossary/#legal-actions) | yes | Non-empty, unique subset of the type's `actions` that the game allows **right now** |
+| [`.legal_actions`](/glossary/#legal-actions) | yes | Non-empty, unique subset of the type's `actions` that the game allows **right now**. For a type with [decision slots](#decision-slots): an object mapping each slot to ask to its legal actions |
 | `.position` | no | `[x, y]` or `[x, y, z]`. If omitted, the last telemetry position is used |
 | `.profile` | no | A [profile](/specification/manifest/#profiles) name; must match the profile's `type` if it has one |
 | `.parent` | no | Id of the entity this one belongs to, its squad, faction or director. See [groups](#groups) |
@@ -96,6 +96,8 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 | `action` | One of the entity's `legal_actions` (only when `AI`) |
 | `label` | The manifest description of the action, **not** model reasoning |
 | `confidence` | Provider confidence, or `null` |
+| `probabilities` | Optional. The provider's probability for each legal action (renormalized over them). A game may [sample](#sampling) its action from it |
+| `slots` | For a type with [decision slots](#decision-slots), instead of `action`, `label`, `confidence` and `probabilities`: one result per slot asked |
 | `decision_id` | Opaque, unique id of an `AI` decision. The game sends it back in the [report](/specification/report/); see [decision integrity](/specification/security/#decision-integrity) |
 | `cached` | `true` when the decision was reused from the [decision cache](/specification/manifest/#decision-cache) instead of a new model call |
 | `code` | Machine-readable fallback reason (only when `FALLBACK`), see below |
@@ -113,6 +115,28 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 | `budget` | The entity's input exceeded the type's [`max_input_tokens`](/specification/manifest/#token-budget) | Native AI; send less context |
 
 Each entity is decided independently: one refused, invalid or over-budget entity yields `FALLBACK` for that entity only. If the whole provider call fails, every entity sent in that call gets `FALLBACK`; cached decisions are unaffected.
+
+## Decision slots
+
+For a type with [`decisions`](/specification/manifest/#decision-slots), `legal_actions` is an object: the slots to ask now and the legal actions of each. A slot left out is not asked and stays with the native AI.
+
+```json
+{ "id": "p7", "type": "employee", "observation": { "workload": "overloaded", "pay_vs_market": "below" },
+  "legal_actions": { "effort": ["carry_on", "push_harder", "reduce_effort"], "raise": ["none", "ask_raise"] } }
+```
+
+The decision carries one result per slot under one `decision_id`. Each slot either has an `action` (with `label`, `confidence` and optional `probabilities`) or falls back on its own with a `code` and `reason`; the game runs its native AI for that slot only. If no slot has an action, the whole entity gets a `FALLBACK` decision.
+
+```json
+{ "id": "p7", "source": "AI", "ttl_ms": 60000, "decision_id": "d_8e1b",
+  "slots": {
+    "effort": { "action": "reduce_effort", "label": "Pull back", "confidence": 0.96, "probabilities": { "carry_on": 0.02, "push_harder": 0.0, "reduce_effort": 0.98 } },
+    "raise":  { "code": "refused", "reason": "The model declined to choose" } } }
+```
+
+## Sampling
+
+`action` is the provider's most likely choice. A game whose native AI rolls dice (behaviour happens with some probability each turn) keeps its odds by **sampling** from `probabilities` with its own random generator instead: a 30 % behaviour then happens in about 30 % of turns, as before, and a seeded game replays identically. The game reports the action it actually executed; the service accepts any action that was legal for the decision. Sample once per decision, in the game's own order (not in the order replies arrive), so replays do not depend on the network.
 
 ## Scope
 
@@ -143,7 +167,7 @@ The service builds one model request per batch. Static content comes first so it
 | 4 | `world` state and `scope_state` | once per request |
 | 5 | Situation context: `population`, `observed_entities` | once per request |
 | 6 | Per entity: type, profile name, observation, memory, `nearby`, `parent`, `members`, trigger | per entity |
-| 7 | One typed question per entity offering only its `legal_actions`. The question also carries the entity type's `description` | per entity |
+| 7 | One typed question per entity (per slot for [decision slots](#decision-slots)) offering only its `legal_actions`. The question also carries the entity type's `description` | per entity |
 
 Parts 1–5 are shared and paid once per batch; parts 6–7 are the entity-specific input the [token budget](/specification/manifest/#token-budget) applies to.
 
@@ -167,7 +191,7 @@ In the proposed `cascade` mode the SDK first evaluates the [local policy](/desig
 ## Game obligations
 
 - Drop the response if `epoch` no longer matches.
-- Re-check that `action` is in the `legal_actions` it sent.
+- Re-check that `action` (or each slot's action) is in the `legal_actions` it sent.
 - Treat a decision as expired after `ttl_ms` and return to native AI.
 - On `FALLBACK`, run the game's [native AI](/glossary/#native-ai), never invent an action.
 - Treat a cached decision exactly like a fresh one.

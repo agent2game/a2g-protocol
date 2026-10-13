@@ -27,8 +27,8 @@ The 0.1 reference service supports **OpenAI Decisions** (default) and **TypeSafe
 The service turns one [decide](/specification/decide/) batch into **one provider request**:
 
 - **Shared context** (world text, world state, scope and profile text) becomes the provider's input/state.
-- **Each entity** becomes one typed choice question. Its options are exactly the entity's `legal_actions`, described with the manifest's action descriptions.
-- The answer's choice becomes `action`; the provider's confidence becomes `confidence`. A refusal or an option outside `legal_actions` becomes `FALLBACK` for that entity only.
+- **Each entity** becomes one typed choice question (one per slot for [decision slots](/specification/manifest/#decision-slots)). Its options are exactly the entity's `legal_actions`, described with the manifest's action descriptions.
+- The answer's choice becomes `action`; the provider's confidence becomes `confidence` and its probabilities become `probabilities`, which a game may [sample](/specification/decide/#sampling) from. A refusal or an option outside `legal_actions` becomes `FALLBACK` for that entity only.
 
 Both typed-decision APIs evaluate all questions against the same input in parallel, so batching many entities into one request is cheaper and barely slower than asking about one.
 

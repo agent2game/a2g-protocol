@@ -42,7 +42,7 @@ Except in the `local` profile, every request MUST include `Authorization: Bearer
 | `paused` | Boolean, required |
 | `entities` | ≤ 128 |
 | `world`, `fields` | ≤ 24 scalar values each |
-| `decision` | ≤ 12 scalar values |
+| `decision` | ≤ 12 scalar values, plus `slots` (`{slot: action}`) for a decision with [slots](/specification/decide/#decision-slots) |
 | `position` | Optional `[x, y]` or `[x, y, z]`; used for `nearby`, `members` and population context |
 | `scope` | Optional. The active [scope](/specification/manifest/#scopes), for the console and logs |
 | `.parent` | Optional. The entity's group, as in [decide](/specification/decide/#groups); lets a parent see all its members, not only those in the current batch |
