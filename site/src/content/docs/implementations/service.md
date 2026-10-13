@@ -7,7 +7,7 @@ sidebar:
 
 The reference decision service is a small Python service on FastAPI and uvicorn, with a Docker image. It implements the server side of the protocol for any game that sends a valid manifest.
 
-**Source and releases:** [github.com/agent2game/a2g-service](https://github.com/agent2game/a2g-service). Current release: `v0.1.0` (protocol 0.1), Docker image `ghcr.io/agent2game/a2g-service` for amd64 and arm64.
+**Source and releases:** [github.com/agent2game/a2g-service](https://github.com/agent2game/a2g-service). Current release: `v0.1.1` (protocol 0.1), Docker image `ghcr.io/agent2game/a2g-service` for amd64 and arm64.
 
 ## What it does
 
@@ -24,7 +24,7 @@ The reference decision service is a small Python service on FastAPI and uvicorn,
 ## Run
 
 ```bash
-docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.0
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.1
 ```
 
 Use `OPENAI_API_KEY` (and no `A2G_PROVIDER`) for OpenAI Decisions. Keep `-p 127.0.0.1:...`: the `local` profile has no authentication, and publishing the port on all interfaces would expose the service, and your key's budget, to your network. From a checkout of the repository: `cp .env.example .env`, add a key, `docker compose up -d --build`.
@@ -38,6 +38,7 @@ Settings (`-e` in Docker, or `.env`; the process environment wins):
 | `A2G_ALLOWED_ORIGINS` | Exact loopback origins of browser games on local dev servers, comma-separated, for example `http://localhost:5173` ([rules](/specification/security/#browser-games-during-development)) |
 | `A2G_CONSOLE` | `off` serves only `/v1/*` and `/health` |
 | `A2G_PROVIDER_CALLS` | Concurrent provider calls (default 16); match your provider's rate limit |
+| `A2G_QUESTIONS_PER_CALL` | Questions per provider call (default 64); bigger batches are split into parallel calls |
 | `A2G_PORT`, `A2G_DB` | Listen port (default 8787) and SQLite file |
 
 Without Docker: `pip install -r requirements.txt`, then `python3 decision_service.py` (Python 3.12+).
@@ -56,7 +57,7 @@ The specification leads; the reference implementations follow. Status of protoco
 | [Field types](/specification/manifest/#field-types) `vector2`, `vector3`, `entity_ref`, lists, numeric enums | yes | yes (passed through from the adapter) | yes (passed through from the adapter) |
 | [Token budget](/specification/manifest/#token-budget) | yes (~4 chars/token) | n/a | n/a |
 | [Decision cache](/specification/manifest/#decision-cache) | yes: in memory, game-wide for `local` sessions; decisions with confidence below 0.5 are not cached; equivalent entities in one batch are asked once | n/a (transparent) | n/a (transparent) |
-| [Decision slots](/specification/manifest/#decision-slots) | yes: one question per slot, per-slot fallback, cache and budget per entity | yes: `legal_actions` / `execute` with `{slot: ...}` | yes: same |
+| [Decision slots](/specification/manifest/#decision-slots) | yes: no cap on slots; one question per slot, split across parallel provider calls above `A2G_QUESTIONS_PER_CALL` (default 64); per-slot fallback, cache and budget per entity | yes: `legal_actions` / `execute` with `{slot: ...}` | yes: same |
 | [Probabilities and sampling](/specification/decide/#sampling) | yes: provider probabilities over the legal actions; reports may carry any legal action | yes: `sample = sampler(rng)` | yes: `sample: sampler(rng)` |
 | [Fallback codes](/specification/decide/#fallback-codes) | yes | yes: kept per entity for debugging | yes: `decision(entity)` |
 | [Manifest hash](/specification/manifest/#manifest-hash) | yes | yes: stored from the session response | yes |

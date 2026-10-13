@@ -306,8 +306,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/DecisionSlot"
           },
-          "minProperties": 1,
-          "maxProperties": 8
+          "minProperties": 1
         }
       },
       "required": [],
@@ -542,8 +541,7 @@
                 "maxItems": 32,
                 "uniqueItems": true
               },
-              "minProperties": 1,
-              "maxProperties": 8
+              "minProperties": 1
             }
           ]
         },
@@ -661,8 +659,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/SlotResult"
           },
-          "minProperties": 1,
-          "maxProperties": 8
+          "minProperties": 1
         }
       },
       "required": [
@@ -804,8 +801,7 @@
           "additionalProperties": {
             "$ref": "#/$defs/Name"
           },
-          "minProperties": 1,
-          "maxProperties": 8
+          "minProperties": 1
         }
       },
       "required": [
@@ -874,8 +870,7 @@
               },
               "additionalProperties": {
                 "$ref": "#/$defs/Name"
-              },
-              "maxProperties": 8
+              }
             }
           }
         },

@@ -334,7 +334,7 @@ The defaults are reliable; the intermediate rules (C, E) are not followed reliab
 ## 8. Run it
 
 ```sh
-docker run -d -p 127.0.0.1:8787:8787 -e OPENAI_API_KEY=... ghcr.io/agent2game/a2g-service:0.1.0
+docker run -d -p 127.0.0.1:8787:8787 -e OPENAI_API_KEY=... ghcr.io/agent2game/a2g-service:0.1.1
 godot --path examples/Lango_GodotRPG res://Levels/Level1.tscn -- --a2g-ai
 ```
 

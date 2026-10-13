@@ -5,7 +5,7 @@ description: The steps to connect an existing game to A2G, manifest, adapter and
 
 This guide uses the [Godot SDK](/implementations/godot-sdk/); the [JS/TS SDK](/implementations/js-sdk/) has the same calls in JavaScript style. The steps are the same for any engine.
 
-One principle runs through every step: the game's existing decision logic (an FSM, rules, utility AI, behavior trees, even its own model calls) is its **native AI**. A2G does not replace or rewrite it. It is the default, and it runs whenever A2G has no fresh, valid decision.
+One principle runs through every step: the game's existing decision logic (an FSM, rules, utility AI, behavior trees, even its own model calls) is its **native AI**. A2G does not replace or rewrite it. It is the default, and it runs whenever A2G has no fresh, valid decision. If that logic already calls a model, A2G will not make it smarter at first; it adds observability, provider choice, caching and budgets, and a path to a local policy ([FAQ](/faq/#our-ai-already-calls-a-model-what-does-a2g-add)).
 
 ## 0. Find or write the client
 
@@ -36,7 +36,7 @@ The public surface mirrors the [Godot SDK](/implementations/godot-sdk/#api): `re
 The client talks to an A2G **decision service**, which holds the provider key, validates requests and calls the model. Use an existing one: the [reference service](/implementations/service/) for development, or a hosted one. If none is running, start the reference service with Docker and a provider key:
 
 ```sh
-docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.0
+docker run -d --name a2g -p 127.0.0.1:8787:8787 -v a2g-data:/data -e TYPESAFE_API_KEY=... -e A2G_PROVIDER=jev ghcr.io/agent2game/a2g-service:0.1.1
 ```
 
 It answers on `http://127.0.0.1:8787` (`/health` for status, `/` for the Agent2Game Console). Do not write a service or a console for one game; their logic is the same for every game. Without Docker or a provider key, test the client against a stub that follows the [specification](/specification/overview/).

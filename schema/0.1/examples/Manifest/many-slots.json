@@ -1,0 +1,80 @@
+{
+  "entity_types": {
+    "worker": {
+      "decisions": {
+        "s00": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s01": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s02": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s03": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s04": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s05": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s06": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s07": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s08": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s09": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s10": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        },
+        "s11": {
+          "actions": {
+            "none": "Nothing",
+            "act": "Do it"
+          }
+        }
+      }
+    }
+  }
+}

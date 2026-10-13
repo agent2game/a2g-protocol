@@ -65,6 +65,10 @@ It cannot make an illegal one: it only picks from the actions the game offered a
 
 You choose what it controls. Drive only the entities and moments that benefit from judgment and keep the rest native. Designers shape the model's play through action descriptions and character [profiles](/glossary/#profile), and narrow its options per situation through `legal_actions`. AI control is opt-in; switching back to native is a single mode change.
 
+### Our AI already calls a model. What does A2G add?
+
+Not smarter decisions on day one: if your native AI already asks a model with carefully tuned questions, A2G asking the same model gives similar answers. What it adds is everything around the call. One manifest and one protocol instead of prompts spread through game code; the [Agent2Game Console](/implementations/service/) with every decision, its context, probabilities, outcome and cost; switching providers (including open models on your own hardware) by configuration; the [decision cache](/specification/manifest/#decision-cache) and [token budgets](/specification/manifest/#token-budget) to cut spend; and the logged decisions as training data for a [local policy](/design/local-policy/) *(proposed)* that can later replace most calls. Keep your existing calls as the native AI and fallback; your balance tuning (rates, caps, dice) still applies to A2G's [probabilities](/specification/decide/#sampling).
+
 ### Will enemies become unbeatable or unfair?
 
 Only if you let them. The model chooses among your actions; damage, speed, cooldowns and reaction times stay in your code. Its instructions can describe the intended difficulty, for example a profile that tells a grunt to play like a grunt.
