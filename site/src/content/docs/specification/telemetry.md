@@ -5,7 +5,7 @@ sidebar:
   order: 7
 ---
 
-The game sends a snapshot about once per second **in every mode**, including native-AI mode, while paused and with debug UI closed. Telemetry never triggers a provider call.
+The game sends a snapshot **in every mode**, including native-AI mode, while paused and with debug UI closed: about once per second in real-time games, and after every step in turn-based or server games whose state changes only on turns (a timer there would resend the same snapshot). Telemetry never triggers a provider call.
 
 ## Request
 

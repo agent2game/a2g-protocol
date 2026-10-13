@@ -7,10 +7,10 @@ sidebar:
 
 The JS/TS SDK is an A2G client for web and Node games: browser games (Phaser, PixiJS, Three.js, plain canvas) and server-side or turn-based games (Node, Next.js, Deno, Bun). It is one TypeScript module with no runtime dependencies and no game-specific code. It behaves like the [Godot SDK](/implementations/godot-sdk/), with the same calls in JavaScript style, plus `decideNow()` for games that decide once per turn.
 
-**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.1.0` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
+**Source and releases:** [github.com/agent2game/a2g-sdk-js](https://github.com/agent2game/a2g-sdk-js). Current release: `v0.1.1` (protocol 0.1; browsers with `fetch`, Node 22.18+). Not on npm yet; install from GitHub:
 
 ```sh
-npm install github:agent2game/a2g-sdk-js#v0.1.0
+npm install github:agent2game/a2g-sdk-js#v0.1.1
 ```
 
 ## Real-time games
@@ -52,7 +52,10 @@ await a2g.decideNow();              // every tracked entity, in batches of 16, e
 for (const npc of npcs) {
   if (!a2g.execute(npc, 0)) applyNativeChoice(npc);
 }
+await a2g.sendTelemetry();          // after every turn, instead of a timer
 ```
+
+A decision that ran is reported as `executed` when the next turn replaces it, even if the player's turn outlasted its `ttl_ms`.
 
 ## Adapter contract
 

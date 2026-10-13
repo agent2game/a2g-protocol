@@ -27,7 +27,7 @@ A third part is proposed: the [policy format](/specification/policy-format/), a 
 2. **Decide.** On events or on a slow timer the game sends a batch of entities that need a decision. The service asks the model one typed question per entity and returns one decision each.
 3. **Execute.** The game validates each decision and executes it, or runs its native AI.
 4. **Report.** When a decision ends, the game reports how; this becomes the entity's memory.
-5. **Telemetry.** About once per second, in every mode, the game sends what is actually happening.
+5. **Telemetry.** In every mode, about once per second (or after every turn in turn-based games), the game sends what is actually happening.
 
 ## Endpoints
 

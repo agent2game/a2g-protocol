@@ -17,7 +17,7 @@ The service is not yet available in a public repository. Publishing it is on the
 - Applies [`/v1/context`](/specification/context/) updates to scopes and profiles atomically.
 - Sends one request per batch to the active [provider](/design/providers/): [OpenAI Decisions](/design/providers/#openai-decisions) (default) or [TypeSafe Jev](/design/providers/#typesafe-jev), with one typed `choice` question per entity offering only its legal actions. The input follows the [specified order](/specification/decide/#what-the-provider-sees) (world, scope chain, profiles, type descriptions, state, situation context, then entities), and all game values are passed as data, separate from the service's instructions.
 - Computes session-scoped situation context: `population`, `nearby`, `observed_entities`, the `parent` decision and `members` of [groups](/specification/decide/#groups).
-- Enforces [token budgets](/specification/manifest/#token-budget) (~4 characters per token) and serves the [decision cache](/specification/manifest/#decision-cache) (in memory, game-wide for trusted `local` sessions).
+- Enforces [token budgets](/specification/manifest/#token-budget) (~4 characters per token; warns in the console when a type's budget is below its question size) and serves the [decision cache](/specification/manifest/#decision-cache) (in memory, game-wide for trusted `local` sessions).
 - Issues a `decision_id` with every AI decision and applies a [report](/specification/report/) only once, for the session and entity it was issued to; stores the last 8 as [memory](/glossary/#memory).
 - Serves the **Agent2Game Console** at `/` (optional, `A2G_CONSOLE=off` runs the service headless): a **Provider** switch saved across restarts, clients, context (scopes, profiles, entity types), entities with groups, decisions, cache hits, fallback codes, memory, costs and logs, with a Pretty/JSON view per card, a manifest editor (download, or apply as a console-side override for testing) and deletion of old sessions.
 - Stores session summaries, every priced provider call, manifest overrides and the provider choice in a local SQLite file, so spend survives restarts. Telemetry, memory and logs stay in memory.
@@ -38,6 +38,7 @@ Settings in `.env` (the process environment wins):
 | `A2G_PROVIDER` | `openai` (default) or `jev`; a choice made in the Agent2Game Console overrides it |
 | `A2G_ALLOWED_ORIGINS` | Exact loopback origins of browser games on local dev servers, comma-separated, for example `http://localhost:5173` ([rules](/specification/security/#browser-games-during-development)) |
 | `A2G_CONSOLE` | `off` serves only `/v1/*` and `/health` |
+| `A2G_PROVIDER_CALLS` | Concurrent provider calls (default 16); match your provider's rate limit |
 | `A2G_PORT`, `A2G_DB` | Listen port (default 8787) and SQLite file |
 
 Without Docker: `pip install -r requirements.txt`, then `python3 decision_service.py` (Python 3.12+).
@@ -85,9 +86,9 @@ See [Local policy](/design/local-policy/).
 | Limit | Value |
 | --- | --- |
 | Bind address | `127.0.0.1` only, the `local` [security profile](/specification/security/#deployment-profiles); never expose it |
-| Concurrent provider calls | 4; extra batches get `FALLBACK` with `code: "busy"` |
+| Concurrent provider calls | 16 by default (`A2G_PROVIDER_CALLS`); extra batches get `FALLBACK` with `code: "busy"` |
 | Provider timeout | 3 s |
-| Clients kept | 32 |
+| Clients | No cap (one client per match on a game server); clients idle for 1 hour leave memory, their summaries stay in SQLite |
 | Log events per client | 300 |
 | Storage | Telemetry, memory and logs in memory; session summaries, costs, overrides and the provider choice in SQLite |
 

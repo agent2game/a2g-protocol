@@ -166,7 +166,7 @@ Events turn polling into reacting: an idle guard costs nothing until `player_spo
 
 `max_input_tokens` caps the **entity-specific** part of the model input: its observation, memory, `nearby`, `members`, `parent`, trigger and question. Shared parts (world, scopes, profiles, world and scope state) are not counted, because they are paid once per batch.
 
-The service estimates tokens before calling the provider (the reference service uses ~4 characters per token). An entity over budget is not sent; it gets a `FALLBACK` decision with `code: "budget"`. A budget is a guard against silently paying for oversized context, not a billing limit.
+The service estimates tokens before calling the provider (the reference service uses ~4 characters per token). An entity over budget is not sent; it gets a `FALLBACK` decision with `code: "budget"`. A budget is a guard against silently paying for oversized context, not a billing limit. The game sets it per type to its own needs; omit it when no cap is needed. A service SHOULD warn when a type's budget is below the fixed part of its question (instructions, action descriptions, field names), because every decision of that type would then fall back.
 
 ## Decision cache
 

@@ -24,7 +24,7 @@ Write a small client in your engine's language. It is the same for every game, s
 | Validation | Drop replies with an old `epoch`; accept an action only if it is in the `legal_actions` you sent; expire it after `ttl_ms` |
 | Fallback | On any error, timeout, non-`200`, `FALLBACK` or expired decision, run the game's **existing AI**. The client never invents an action |
 | Report | When a decision ends, send [`/v1/report`](/specification/report/) with its `decision_id`, status and a few numeric outcomes |
-| Telemetry | About once per second, in every mode, send [`/v1/telemetry`](/specification/telemetry/) with each entity's actual state |
+| Telemetry | In every mode, send [`/v1/telemetry`](/specification/telemetry/) with each entity's actual state: about once per second in real-time games, after every turn in turn-based games |
 | Modes | Start in native mode; AI control is switched on explicitly and switching modes increments the epoch |
 | Security | No provider keys in the build; the session token on every request; no personal data in observations ([Security](/specification/security/)) |
 | Correctness | Validate your messages against the [JSON Schema](https://agent2game.org/schema/0.1/a2g.schema.json) in tests, and test with the service stopped: the game must play normally |
@@ -45,6 +45,8 @@ Where things run:
 
 A provider key never ships to players: not in a build, not in a browser bundle.
 
+A game server runs **one client per match** (game, room or save), each with its own `client_id`, session and epoch. A service keeps no cap on the number of sessions.
+
 ## 1. Choose entities and actions
 
 Pick the kind of entity whose behavior you want the model to drive: enemies, NPCs, units. List the actions your game **already knows how to execute** for them, such as `chase`, `flee`, `idle`, `wander`. A2G does not add new abilities; it chooses between existing ones.
@@ -58,6 +60,8 @@ Tips:
 - Use normalized values (`hp_fraction` instead of raw HP) and state units in the world text.
 - Put personality in the type `description`, mechanics in action descriptions.
 - Expose only what the entity could plausibly know.
+- Leave out `max_input_tokens` at first. Add a budget once you know the real size from the Agent2Game Console; a budget below the size of a type's question makes every decision of that type fall back with `code: "budget"`.
+- If the game replays runs from a seed, keep the random stream identical in AI mode: let the native AI draw its random numbers as usual and only replace the chosen action.
 
 ## 3. Write the adapter
 
