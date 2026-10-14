@@ -7,6 +7,19 @@ This guide uses the [Godot SDK](/implementations/godot-sdk/); the [JS/TS SDK](/i
 
 One principle runs through every step: the game's existing decision logic (an FSM, rules, utility AI, behavior trees, even its own model calls) is its **native AI**. A2G does not replace or rewrite it. It is the default, and it runs whenever A2G has no fresh, valid decision. If that logic already calls a model, A2G will not make it smarter at first; it adds observability, provider choice, caching and budgets, and a path to a local policy ([FAQ](/faq/#our-ai-already-calls-a-model-what-does-a2g-add)).
 
+## Where A2G helps
+
+A2G is worth adding only where it can do better than the game's own code, and the result can be measured. Before writing anything, list the decisions the native AI makes and judge each one.
+
+| A2G can add value | Leave it to the game |
+| --- | --- |
+| Choices the native AI makes at random (which unit to recruit, which quest to offer) | Precise geometry: the exact tile, aim, path or timing |
+| Fixed priority lists that ignore the situation (always attack first, always retreat at 30 % health) | Per-frame micro-decisions and anything that must answer within one frame |
+| Strategic choices: what to build, whom to ally with, whom to target, when to change plans | Behaviour the native AI already does well |
+| Behaviour designers find hard to tune or to vary per character, which profiles can describe in words | Features added only to show AI: generated text, chat, taunts |
+
+Then change the game as little as possible: an adapter module and a few hook lines, with rules, balance, content and UI untouched. Compare AI mode with native mode on the same matches or seeds, and say plainly where A2G made no difference. If no decision in a game qualifies, A2G is not the right tool for it.
+
 ## 0. Find or write the client
 
 Check Implementations for an SDK for your engine or language: [Godot](/implementations/godot-sdk/), [JavaScript and TypeScript](/implementations/js-sdk/) (browser and Node). If there is one, use it and continue with [the decision service](#decision-service).
